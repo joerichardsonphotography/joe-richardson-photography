@@ -7,6 +7,7 @@ import { PrismicNextImage } from "@prismicio/next";
 import { Content, isFilled } from "@prismicio/client";
 import { useInfiniteScrollLoop } from "@/hooks/useInfiniteScrollLoop";
 import { useActiveProjectLink } from "@/hooks/useActiveProjectLink";
+import { useSettleAndNavigate } from "@/hooks/useSettleAndNavigate";
 
 type Project = Content.ProjectDocument;
 
@@ -49,6 +50,18 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
   }, []);
 
   const activeProject = projects.find((p) => p.uid === activeUid) ?? null;
+
+  // Mobile only: once scrolling fully stops on a project (not just pauses
+  // mid-scroll), fade the text list out, show that project's cover image
+  // full-screen, then auto-navigate there after a short pause. Requiring a
+  // genuine scroll-stop — not just resting on a name while scrolling toward
+  // a different one — means normal browsing of the list is never hijacked
+  // mid-scroll.
+  const isRevealed = useSettleAndNavigate(
+    activeUid,
+    isTouch,
+    (uid) => projects.find((p) => p.uid === uid)?.url ?? null,
+  );
 
   if (projects.length === 0) {
     return (
@@ -93,7 +106,7 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
     <div
       aria-hidden
       className={`pointer-events-none fixed bottom-20 left-1/2 z-20 -translate-x-1/2 transition-opacity duration-1000 md:hidden ${
-        hasScrolled ? "opacity-0" : "opacity-100"
+        hasScrolled || isRevealed ? "opacity-0" : "opacity-100"
       }`}
     >
       <svg
@@ -114,6 +127,36 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
     </div>
   );
 
+  // Mobile-only full-screen reveal: replaces the small side thumbnail once
+  // the user has settled on a project (see useSettleAndNavigate above).
+  // Deliberately separate from `thumbnailPreview` rather than resizing it,
+  // since this is a distinct state (about to navigate) rather than a
+  // passive hover-following preview.
+  const revealImage = activeProject
+    ? (() => {
+        const cover = activeProject.data.cover_image;
+        const firstGalleryImage = activeProject.data.gallery?.[0]?.image;
+        const image = isFilled.image(cover) ? cover : firstGalleryImage;
+        if (!isFilled.image(image)) return null;
+
+        return (
+          <div
+            aria-hidden
+            className={`pointer-events-none fixed inset-0 z-30 flex items-center justify-center bg-[#FAFAF8] transition-opacity duration-700 ease-out md:hidden ${
+              isRevealed ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            <PrismicNextImage
+              field={image}
+              fallbackAlt=""
+              sizes="90vw"
+              className="max-h-[80vh] w-[86vw] object-cover"
+            />
+          </div>
+        );
+      })()
+    : null;
+
   return (
     <>
       {/* Rendered via portal directly into document.body so it stays truly
@@ -125,8 +168,13 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
           portals once mounted client-side to avoid a hydration mismatch. */}
       {mounted && createPortal(thumbnailPreview, document.body)}
       {mounted && createPortal(scrollHint, document.body)}
+      {mounted && revealImage && createPortal(revealImage, document.body)}
 
-      <main className="relative z-0 max-w-[54%] px-4 pb-28 pt-20 md:max-w-[58%] md:px-8 md:pt-28">
+      <main
+        className={`relative z-0 max-w-[54%] px-4 pb-28 pt-20 transition-opacity duration-500 ease-out md:max-w-[58%] md:px-8 md:pt-28 md:opacity-100 ${
+          isRevealed ? "opacity-0" : "opacity-100"
+        }`}
+      >
         {Array.from({ length: REPEAT_COUNT }).map((_, repeatIdx) => (
           <ul
             key={repeatIdx}
