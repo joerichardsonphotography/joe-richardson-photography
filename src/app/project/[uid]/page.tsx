@@ -6,6 +6,8 @@ import { ProjectGallery } from "@/components/ProjectGallery";
 
 type Params = { uid: string };
 
+const SITE_URL = "https://www.joerichardsonphotography.co.uk";
+
 export default async function ProjectPage({
   params,
 }: {
@@ -17,8 +19,34 @@ export default async function ProjectPage({
     .getByUID("project", uid)
     .catch(() => notFound());
 
+  const allImageUrls = [
+    project.data.cover_image,
+    ...(project.data.gallery ?? []).map((item) => item.image),
+  ]
+    .filter(isFilled.image)
+    .map((image) => asImageSrc(image))
+    .filter((url): url is string => Boolean(url));
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ImageGallery",
+    name: project.data.name,
+    url: `${SITE_URL}/project/${project.uid}`,
+    image: allImageUrls,
+    author: {
+      "@type": "Person",
+      name: "Joe Richardson",
+    },
+  };
+
   return (
     <div className="min-h-screen w-full bg-[#FAFAF8] text-[#111111]">
+      {/* Structured data helps individual photos surface in Google Images
+          search results attributed to this gallery/page. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <main className="px-4 pb-32 pt-28 md:px-8 md:pt-32">
         <h1 className="sr-only">{project.data.name}</h1>
         <div className="mx-auto max-w-[1680px]">
@@ -35,9 +63,6 @@ export async function generateStaticParams() {
     const projects = await client.getAllByType("project");
     return projects.map((project) => ({ uid: project.uid }));
   } catch {
-    // Repository not reachable yet (e.g. first deploy before content
-    // exists, or env vars not configured). Fall back to no static params;
-    // pages will render on-demand once the repo is set up.
     return [];
   }
 }
