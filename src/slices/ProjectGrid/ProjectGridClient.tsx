@@ -64,7 +64,7 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
   const thumbnailPreview = (
     <div
       aria-hidden
-      className="pointer-events-none fixed left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 md:left-auto md:right-[7vw] md:top-1/2 md:translate-x-0"
+      className="pointer-events-none fixed right-[4vw] top-[28vh] z-20 md:right-[7vw] md:top-1/2 md:-translate-y-1/2"
     >
       {projects.map((project) => {
         const isActive = project.uid === activeProject?.uid;
@@ -79,8 +79,8 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
             key={project.id}
             field={image}
             fallbackAlt=""
-            sizes="(min-width: 768px) 32vw, 55vw"
-            className={`absolute left-1/2 top-1/2 aspect-[4/5] w-[55vw] max-w-[380px] -translate-x-1/2 -translate-y-1/2 object-cover transition-opacity duration-700 ease-out md:left-0 md:top-0 md:w-[32vw] md:max-w-[520px] md:translate-x-0 ${
+            sizes="(min-width: 768px) 32vw, 38vw"
+            className={`absolute right-0 top-0 aspect-[4/5] w-[38vw] max-w-[440px] object-cover transition-opacity duration-700 ease-out md:w-[32vw] md:max-w-[520px] md:-translate-y-1/2 ${
               isActive ? "opacity-100" : "opacity-0"
             }`}
           />
@@ -116,28 +116,17 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
 
   return (
     <>
-      {/* thumbnailPreview is portaled into #mobile-backdrop-portal, a node
-          rendered in layout.tsx BEFORE {children} — not document.body.
-          The page-transition wrapper in template.tsx (which wraps
-          {children}, including this component) applies a CSS transform,
-          creating a new stacking context for everything inside it; once
-          that'''s true, z-index alone can'''t reliably rank this image
-          against the text list, since document.body would place a
-          portaled node'''s DOM position *after* {children} regardless of
-          z-index. Landing in an explicit, earlier DOM sibling instead
-          guarantees correct paint order (image behind text) without
-          relying on z-index at all. Desktop is unaffected: this element
-          is `position: fixed`, so its *visual* position is set by the
-          viewport, not by which DOM node it'''s portaled into. Only portals
-          once mounted client-side to avoid a hydration mismatch. */}
-      {mounted &&
-        createPortal(
-          thumbnailPreview,
-          document.getElementById("mobile-backdrop-portal") ?? document.body,
-        )}
+      {/* Rendered via portal directly into document.body so it stays truly
+          fixed to the viewport. Without this, the page-transition wrapper
+          in template.tsx applies a CSS transform to its animated container,
+          and any `position: fixed` descendant of a transformed element is
+          repositioned relative to that ancestor instead of the viewport —
+          which made this thumbnail drift during the enter animation. Only
+          portals once mounted client-side to avoid a hydration mismatch. */}
+      {mounted && createPortal(thumbnailPreview, document.body)}
       {mounted && createPortal(scrollHint, document.body)}
 
-      <main className="relative z-10 max-w-full px-4 pb-28 pt-20 md:max-w-[58%] md:px-8 md:pt-28">
+      <main className="relative z-0 max-w-[54%] px-4 pb-28 pt-20 md:max-w-[58%] md:px-8 md:pt-28">
         {Array.from({ length: REPEAT_COUNT }).map((_, repeatIdx) => (
           <ul
             key={repeatIdx}
@@ -158,10 +147,8 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
                     )
                   }
                   onFocus={() => setActiveUid(project.uid)}
-                  className={`block font-display font-black uppercase leading-[0.9] tracking-[-0.03em] transition-all duration-150 focus-visible:outline-none text-[10.5vw] md:text-[5vw] md:!text-[#111111] md:hover:!opacity-40 md:active:!opacity-40 md:focus-visible:!opacity-40 ${
-                    activeProject?.uid === project.uid
-                      ? "text-[#111111]"
-                      : "text-[#111111]/30"
+                  className={`block font-display font-black uppercase leading-[0.9] tracking-[-0.03em] text-[#111111] transition-opacity duration-150 hover:opacity-40 active:opacity-40 focus-visible:opacity-40 focus-visible:outline-none text-[10.5vw] md:text-[5vw] ${
+                    activeProject?.uid === project.uid ? "opacity-40" : ""
                   }`}
                 >
                   {project.data.name}

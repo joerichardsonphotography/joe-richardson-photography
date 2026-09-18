@@ -63,19 +63,6 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           </Link>
         </nav>
 
-        {/* Dedicated portal target for the mobile homepage'''s background
-            image (see ProjectGridClient), inserted here — BEFORE
-            {children} — so it sits earlier in the DOM than the
-            page-transition wrapper around {children}. That wrapper
-            applies a CSS transform, which creates a new stacking context
-            for everything inside it; z-index on the homepage'''s text list
-            can'''t reliably out-rank content portaled elsewhere (e.g. to
-            document.body, which appends after {children} regardless of
-            z-index) once that transform is active. Being an earlier DOM
-            sibling, rather than needing a higher z-index, is what
-            actually guarantees this paints behind the text. */}
-        <div id="mobile-backdrop-portal" />
-
         {children}
 
         {/* Fixed corner mark — present on every page, quiet by default */}
