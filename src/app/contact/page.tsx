@@ -41,7 +41,7 @@ export default async function ContactPage() {
               <li>
                 <a
                   href={`mailto:${email}`}
-                  className="underline decoration-1 underline-offset-4 transition-opacity duration-150 hover:opacity-50"
+                  className="underline decoration-1 underline-offset-4 transition-opacity duration-150 hover:opacity-50 active:opacity-50"
                 >
                   {email}
                 </a>
@@ -51,7 +51,7 @@ export default async function ContactPage() {
               <li>
                 <PrismicNextLink
                   field={instagram}
-                  className="underline decoration-1 underline-offset-4 transition-opacity duration-150 hover:opacity-50"
+                  className="underline decoration-1 underline-offset-4 transition-opacity duration-150 hover:opacity-50 active:opacity-50"
                 >
                   Instagram
                 </PrismicNextLink>

@@ -45,13 +45,13 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <nav className="fixed right-4 top-6 z-40 flex flex-col items-end gap-1 md:right-6 md:top-8">
           <Link
             href="/about"
-            className="font-display font-black text-[6vw] uppercase leading-none tracking-[-0.02em] text-[#111111] transition-opacity duration-150 hover:opacity-50 md:text-[1.4vw]"
+            className="font-display font-black text-[6vw] uppercase leading-none tracking-[-0.02em] text-[#111111] transition-opacity duration-150 hover:opacity-50 active:opacity-50 md:text-[1.4vw]"
           >
             About
           </Link>
           <Link
             href="/contact"
-            className="font-display font-black text-[6vw] uppercase leading-none tracking-[-0.02em] text-[#111111] transition-opacity duration-150 hover:opacity-50 md:text-[1.4vw]"
+            className="font-display font-black text-[6vw] uppercase leading-none tracking-[-0.02em] text-[#111111] transition-opacity duration-150 hover:opacity-50 active:opacity-50 md:text-[1.4vw]"
           >
             Contact
           </Link>
@@ -64,7 +64,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <Link
             href="/"
             aria-label="Joe Richardson — home"
-            className="pointer-events-auto inline-flex items-center transition-opacity duration-150 hover:opacity-60"
+            className="pointer-events-auto inline-flex items-center transition-opacity duration-150 hover:opacity-60 active:opacity-60"
           >
             {settings && isFilled.image(settings.data.signature_mark) ? (
               <PrismicNextImage
