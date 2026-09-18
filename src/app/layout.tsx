@@ -45,13 +45,13 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <nav className="fixed right-4 top-6 z-40 flex flex-col items-end gap-1 md:right-6 md:top-8">
           <Link
             href="/about"
-            className="font-display font-black text-[4.2vw] uppercase leading-none tracking-[-0.02em] text-[#111111] transition-opacity duration-150 hover:opacity-50 md:text-[1.4vw]"
+            className="font-display font-black text-[5vw] uppercase leading-none tracking-[-0.02em] text-[#111111] transition-opacity duration-150 hover:opacity-50 md:text-[1.4vw]"
           >
             About
           </Link>
           <Link
             href="/contact"
-            className="font-display font-black text-[4.2vw] uppercase leading-none tracking-[-0.02em] text-[#111111] transition-opacity duration-150 hover:opacity-50 md:text-[1.4vw]"
+            className="font-display font-black text-[5vw] uppercase leading-none tracking-[-0.02em] text-[#111111] transition-opacity duration-150 hover:opacity-50 md:text-[1.4vw]"
           >
             Contact
           </Link>
