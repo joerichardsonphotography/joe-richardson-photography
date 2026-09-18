@@ -105,7 +105,7 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
                     )
                   }
                   onFocus={() => setActiveUid(project.uid)}
-                  className={`block font-display font-black uppercase leading-[0.9] tracking-[-0.03em] text-[#111111] transition-opacity duration-150 hover:opacity-40 focus-visible:opacity-40 focus-visible:outline-none text-[9vw] md:text-[5vw] ${
+                  className={`block font-display font-black uppercase leading-[0.9] tracking-[-0.03em] text-[#111111] transition-opacity duration-150 hover:opacity-40 focus-visible:opacity-40 focus-visible:outline-none text-[10.5vw] md:text-[5vw] ${
                     activeProject?.uid === project.uid ? "opacity-40" : ""
                   }`}
                 >
