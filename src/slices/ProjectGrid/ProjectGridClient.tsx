@@ -61,13 +61,10 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
     );
   }
 
-  // Desktop-only side thumbnail: cross-fades between each project's cover
-  // image, positioned to the right of the text column and following the
-  // hovered name.
   const thumbnailPreview = (
     <div
       aria-hidden
-      className="pointer-events-none fixed right-[7vw] top-1/2 z-20 hidden -translate-y-1/2 md:block"
+      className="pointer-events-none fixed right-[4vw] top-[28vh] z-20 md:right-[7vw] md:top-1/2 md:-translate-y-1/2"
     >
       {projects.map((project) => {
         const isActive = project.uid === activeProject?.uid;
@@ -82,59 +79,14 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
             key={project.id}
             field={image}
             fallbackAlt=""
-            sizes="32vw"
-            className={`absolute right-0 top-0 aspect-[4/5] w-[32vw] max-w-[520px] -translate-y-1/2 object-cover transition-opacity duration-700 ease-out ${
+            sizes="(min-width: 768px) 32vw, 38vw"
+            className={`absolute right-0 top-0 aspect-[4/5] w-[38vw] max-w-[440px] object-cover transition-opacity duration-700 ease-out md:w-[32vw] md:max-w-[520px] md:-translate-y-1/2 ${
               isActive ? "opacity-100" : "opacity-0"
             }`}
           />
         );
       })}
     </div>
-  );
-
-  // Mobile only: a full-screen backdrop that crossfades between each
-  // project's cover image as the reading line moves, rather than the
-  // small side thumbnail desktop uses (there's no room for that plus a
-  // readable text column on a phone). Sits behind the text; a light
-  // gradient (readingLineGradient, below) keeps black type legible near
-  // the reading line while the rest of the photo stays fully visible.
-  const mobileBackdrop = (
-    <div aria-hidden className="pointer-events-none fixed inset-0 z-0 md:hidden">
-      {projects.map((project) => {
-        const isActive = project.uid === activeProject?.uid;
-        const cover = project.data.cover_image;
-        const firstGalleryImage = project.data.gallery?.[0]?.image;
-        const image = isFilled.image(cover) ? cover : firstGalleryImage;
-
-        if (!isFilled.image(image)) return null;
-
-        return (
-          <PrismicNextImage
-            key={project.id}
-            field={image}
-            fallbackAlt=""
-            sizes="100vw"
-            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ease-out ${
-              isActive ? "opacity-100" : "opacity-0"
-            }`}
-          />
-        );
-      })}
-    </div>
-  );
-
-  // Mobile-only light gradient, fixed to the viewport around the
-  // reading-line zone (where useActiveProjectLink samples ~45vh), so
-  // black text stays legible there while the photo backdrop remains
-  // visible everywhere else on screen — deliberately not a solid panel,
-  // since that would hide the photo almost entirely. Portaled like the
-  // other fixed overlays so it isn't affected by the page-transition
-  // transform on <main> (see note on thumbnailPreview above).
-  const readingLineGradient = (
-    <div
-      aria-hidden
-      className="pointer-events-none fixed inset-x-0 top-[28vh] z-[5] h-[34vh] bg-gradient-to-b from-transparent via-[#FAFAF8]/85 to-transparent md:hidden"
-    />
   );
 
   const scrollHint = (
@@ -172,17 +124,15 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
           which made this thumbnail drift during the enter animation. Only
           portals once mounted client-side to avoid a hydration mismatch. */}
       {mounted && createPortal(thumbnailPreview, document.body)}
-      {mounted && createPortal(mobileBackdrop, document.body)}
-      {mounted && createPortal(readingLineGradient, document.body)}
       {mounted && createPortal(scrollHint, document.body)}
 
-      <main className="relative z-10 max-w-full px-4 pb-28 pt-20 md:max-w-[58%] md:px-8 md:pt-28">
+      <main className="relative z-0 max-w-[54%] px-4 pb-28 pt-20 md:max-w-[58%] md:px-8 md:pt-28">
         {Array.from({ length: REPEAT_COUNT }).map((_, repeatIdx) => (
           <ul
             key={repeatIdx}
             ref={repeatIdx === 0 ? blockRef : undefined}
             aria-hidden={repeatIdx !== Math.floor(REPEAT_COUNT / 2)}
-            className="relative z-10 flex flex-col"
+            className="flex flex-col"
           >
             {projects.map((project) => (
               <li key={`${repeatIdx}-${project.id}`} className="leading-[0.9]">
