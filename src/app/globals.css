@@ -62,3 +62,17 @@ body {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
+
+/* Desktop-only homepage scroll-snap, toggled on <html> only while the
+   homepage's ProjectGridClient is mounted (see its useEffect). Each
+   project name becomes a full-viewport-height snap point there, so
+   scrolling without a specific hover target settles on whichever name
+   ends up nearest vertical-center — hovering a name additionally
+   scrolls it there directly, snap-scroll is the fallback for free
+   scrolling rather than the only way to center a name. Desktop-only
+   because mobile keeps its own touch reading-line detection instead. */
+@media (min-width: 768px) {
+  html.homepage-snap-scroll {
+    scroll-snap-type: y mandatory;
+  }
+}
