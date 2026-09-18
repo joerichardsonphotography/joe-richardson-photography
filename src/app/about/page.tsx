@@ -39,7 +39,7 @@ export default async function AboutPage() {
           </div>
 
           {hasPortrait && (
-            <div className="lg:flex-1 lg:shrink-0">
+            <div className="order-first lg:order-none lg:flex-1 lg:shrink-0">
               <PrismicNextImage
                 field={page.data.portrait}
                 alt=""
