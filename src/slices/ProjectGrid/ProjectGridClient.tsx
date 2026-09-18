@@ -80,7 +80,7 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
             field={image}
             fallbackAlt=""
             sizes="(min-width: 768px) 32vw, 38vw"
-            className={`absolute right-0 top-0 aspect-[4/5] w-[38vw] max-w-[440px] object-cover transition-opacity duration-300 ease-out md:w-[32vw] md:max-w-[520px] md:-translate-y-1/2 ${
+            className={`absolute right-0 top-0 aspect-[4/5] w-[38vw] max-w-[440px] object-cover transition-opacity duration-700 ease-out md:w-[32vw] md:max-w-[520px] md:-translate-y-1/2 ${
               isActive ? "opacity-100" : "opacity-0"
             }`}
           />
@@ -92,7 +92,7 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
   const scrollHint = (
     <div
       aria-hidden
-      className={`pointer-events-none fixed bottom-20 left-1/2 z-20 -translate-x-1/2 transition-opacity duration-500 md:hidden ${
+      className={`pointer-events-none fixed bottom-20 left-1/2 z-20 -translate-x-1/2 transition-opacity duration-1000 md:hidden ${
         hasScrolled ? "opacity-0" : "opacity-100"
       }`}
     >

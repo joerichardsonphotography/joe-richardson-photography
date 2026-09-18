@@ -46,7 +46,7 @@ export function MobileNav() {
   // the fade-out is visible instead of the overlay vanishing instantly.
   useEffect(() => {
     if (isOpen || !isMounted) return;
-    const timeout = setTimeout(() => setIsMounted(false), 300);
+    const timeout = setTimeout(() => setIsMounted(false), 700);
     return () => clearTimeout(timeout);
   }, [isOpen, isMounted]);
 
@@ -68,7 +68,7 @@ export function MobileNav() {
           role="dialog"
           aria-modal="true"
           aria-label="Site menu"
-          className={`fixed inset-0 z-[60] flex flex-col bg-[#FAFAF8] transition-all duration-300 ease-out ${
+          className={`fixed inset-0 z-[60] flex flex-col bg-[#FAFAF8] transition-all duration-700 ease-out ${
             isOpen ? "opacity-100" : "pointer-events-none opacity-0"
           }`}
         >
