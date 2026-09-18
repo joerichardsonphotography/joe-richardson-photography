@@ -1,0 +1,108 @@
+{
+  "format": "custom",
+  "id": "project",
+  "label": "Project",
+  "repeatable": true,
+  "status": true,
+  "json": {
+    "Main": {
+      "uid": {
+        "type": "UID",
+        "config": {
+          "label": "UID",
+          "placeholder": "e.g. serena-and-casper"
+        }
+      },
+      "name": {
+        "type": "Text",
+        "config": {
+          "label": "Name",
+          "placeholder": "e.g. Serena & Casper"
+        }
+      },
+      "category": {
+        "type": "Select",
+        "config": {
+          "label": "Category",
+          "placeholder": "Choose a category",
+          "options": ["Wedding", "Editorial"],
+          "default_value": "Wedding"
+        }
+      },
+      "couple_name": {
+        "type": "Text",
+        "config": {
+          "label": "Couple name (weddings only)",
+          "placeholder": "e.g. Serena & Casper"
+        }
+      },
+      "wedding_date": {
+        "type": "Date",
+        "config": {
+          "label": "Wedding date (weddings only)"
+        }
+      },
+      "location": {
+        "type": "Text",
+        "config": {
+          "label": "Location",
+          "placeholder": "e.g. Enniskillen, Northern Ireland"
+        }
+      },
+      "info": {
+        "type": "StructuredText",
+        "config": {
+          "label": "Info (editorial / freeform — overrides couple/date/location display)",
+          "placeholder": "Freeform description shown instead of the couple/date/location block",
+          "allowTargetBlank": true,
+          "single": "paragraph"
+        }
+      },
+      "cover_image": {
+        "type": "Image",
+        "config": {
+          "label": "Cover / thumbnail image",
+          "constraint": {},
+          "thumbnails": []
+        }
+      },
+      "gallery": {
+        "type": "Group",
+        "config": {
+          "label": "Gallery",
+          "fields": {
+            "image": {
+              "type": "Image",
+              "config": {
+                "label": "Image",
+                "constraint": {},
+                "thumbnails": []
+              }
+            }
+          }
+        }
+      },
+      "sort_order": {
+        "type": "Number",
+        "config": {
+          "label": "Sort order",
+          "placeholder": "Lower numbers appear first in the list"
+        }
+      }
+    },
+    "SEO": {
+      "meta_title": {
+        "type": "Text",
+        "config": {
+          "label": "Meta title"
+        }
+      },
+      "meta_description": {
+        "type": "Text",
+        "config": {
+          "label": "Meta description"
+        }
+      }
+    }
+  }
+}

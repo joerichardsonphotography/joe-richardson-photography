@@ -1,0 +1,32 @@
+{
+  "format": "custom",
+  "id": "contact",
+  "label": "Contact",
+  "repeatable": false,
+  "status": true,
+  "json": {
+    "Main": {
+      "intro": {
+        "type": "StructuredText",
+        "config": {
+          "label": "Intro text (optional)",
+          "placeholder": "e.g. For enquiries and availability, get in touch below.",
+          "allowTargetBlank": true,
+          "multi": "paragraph"
+        }
+      },
+      "meta_title": {
+        "type": "Text",
+        "config": {
+          "label": "Meta title"
+        }
+      },
+      "meta_description": {
+        "type": "Text",
+        "config": {
+          "label": "Meta description"
+        }
+      }
+    }
+  }
+}

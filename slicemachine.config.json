@@ -1,0 +1,6 @@
+{
+  "_latest": "0.3.0",
+  "repositoryName": "2waspd15",
+  "libraries": ["./src/slices"],
+  "adapter": "@slicemachine/adapter-next"
+}

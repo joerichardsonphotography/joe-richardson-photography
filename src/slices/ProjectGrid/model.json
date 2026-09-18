@@ -1,0 +1,26 @@
+{
+  "id": "project_grid",
+  "type": "SharedSlice",
+  "name": "ProjectGrid",
+  "description": "Full-bleed looping list of all projects, linked by UID. Renders live project data pulled from the Project custom type at build/request time \u2014 this slice's own fields only control the section-level presentation.",
+  "variations": [
+    {
+      "id": "default",
+      "name": "Default",
+      "docURL": "...",
+      "version": "initial",
+      "description": "Default",
+      "primary": {
+        "eyebrow": {
+          "type": "Text",
+          "config": {
+            "label": "Eyebrow (optional, rarely needed)",
+            "placeholder": "e.g. Selected work"
+          }
+        }
+      },
+      "items": {},
+      "imageUrl": ""
+    }
+  ]
+}

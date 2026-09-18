@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #111111;
+  --paper: #FAFAF8;
+  --accent: #B5241C;
+  --muted: #8C8C86;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --color-accent: var(--accent);
+  --color-muted: var(--muted);
+  --font-display: var(--font-inter);
+  --font-body: var(--font-inter);
+}
+
+html {
+  /* Hides the scrollbar so the infinite-scroll-loop teleport on the
+     homepage list is never visible as a jump in the scrollbar thumb. */
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Page transition: fade + slight upward slide on every route change.
+   Runs on the incoming page only (template.tsx remounts per navigation),
+   which keeps this simple and avoids coordinating an exit animation with
+   Next's own unmount timing. */
+@keyframes page-transition-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-transition-enter {
+  animation: page-transition-enter 350ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}

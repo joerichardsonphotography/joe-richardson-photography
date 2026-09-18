@@ -1,0 +1,45 @@
+{
+  "format": "custom",
+  "id": "settings",
+  "label": "Settings",
+  "repeatable": false,
+  "status": true,
+  "json": {
+    "Main": {
+      "site_title": {
+        "type": "Text",
+        "config": {
+          "label": "Site title",
+          "placeholder": "Joe Richardson"
+        }
+      },
+      "meta_description": {
+        "type": "Text",
+        "config": {
+          "label": "Default meta description"
+        }
+      },
+      "signature_mark": {
+        "type": "Image",
+        "config": {
+          "label": "Signature / wordmark image (bottom-right corner mark)",
+          "constraint": {},
+          "thumbnails": []
+        }
+      },
+      "email": {
+        "type": "Text",
+        "config": {
+          "label": "Contact email"
+        }
+      },
+      "instagram_url": {
+        "type": "Link",
+        "config": {
+          "label": "Instagram URL",
+          "select": null
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "format": "custom",
+  "id": "about",
+  "label": "About",
+  "repeatable": false,
+  "status": true,
+  "json": {
+    "Main": {
+      "portrait": {
+        "type": "Image",
+        "config": {
+          "label": "Portrait photo",
+          "constraint": {},
+          "thumbnails": []
+        }
+      },
+      "bio": {
+        "type": "StructuredText",
+        "config": {
+          "label": "Bio",
+          "placeholder": "Your bio, written as paragraphs",
+          "allowTargetBlank": true,
+          "multi": "paragraph"
+        }
+      },
+      "meta_title": {
+        "type": "Text",
+        "config": {
+          "label": "Meta title"
+        }
+      },
+      "meta_description": {
+        "type": "Text",
+        "config": {
+          "label": "Meta description"
+        }
+      }
+    }
+  }
+}
