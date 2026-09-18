@@ -64,7 +64,7 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
   const thumbnailPreview = (
     <div
       aria-hidden
-      className="pointer-events-none fixed left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 md:left-auto md:right-[7vw] md:top-1/2 md:z-20 md:translate-x-0"
+      className="pointer-events-none fixed left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 md:left-auto md:right-[7vw] md:top-1/2 md:translate-x-0"
     >
       {projects.map((project) => {
         const isActive = project.uid === activeProject?.uid;
@@ -80,7 +80,7 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
             field={image}
             fallbackAlt=""
             sizes="(min-width: 768px) 32vw, 55vw"
-            className={`absolute left-1/2 top-1/2 aspect-[4/5] w-[55vw] max-w-[380px] -translate-x-1/2 -translate-y-1/2 object-cover transition-opacity duration-700 ease-out md:left-0 md:top-0 md:w-[32vw] md:max-w-[520px] md:translate-x-0 md:-translate-y-1/2 ${
+            className={`absolute left-1/2 top-1/2 aspect-[4/5] w-[55vw] max-w-[380px] -translate-x-1/2 -translate-y-1/2 object-cover transition-opacity duration-700 ease-out md:left-0 md:top-0 md:w-[32vw] md:max-w-[520px] md:translate-x-0 ${
               isActive ? "opacity-100" : "opacity-0"
             }`}
           />
