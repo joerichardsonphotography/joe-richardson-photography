@@ -33,20 +33,6 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
 
   useInfiniteScrollLoop(blockRef, REPEAT_COUNT);
 
-  // Desktop-only scroll-snap: each name becomes a full-viewport-height
-  // snap point (see the `md:snap-center` list items below), so scrolling
-  // without a specific hover target settles on whichever name ends up
-  // nearest center — hovering a name additionally scrolls it there
-  // directly (see each Link's onMouseEnter). Scoped to a class toggled
-  // on <html> only while this component is mounted, so no other page
-  // ever inherits scroll-snap behavior.
-  useEffect(() => {
-    document.documentElement.classList.add("homepage-snap-scroll");
-    return () => {
-      document.documentElement.classList.remove("homepage-snap-scroll");
-    };
-  }, []);
-
   // Mobile has no hover state to hint that the list scrolls/loops, unlike
   // desktop where hovering a name immediately shows a preview. This fades
   // out a small "more below" cue after the first scroll, mobile-only.
@@ -75,15 +61,10 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
     );
   }
 
-  // Desktop-only: instead of the small side thumbnail, the active
-  // project's cover image sits directly behind the text list, filling a
-  // wide band through the center of the screen. Text greys out by default
-  // (desktopInactive below) and turns solid black only for the hovered
-  // name, so the photo underneath and the "in focus" name read together.
-  const desktopBackdrop = (
+  const thumbnailPreview = (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 z-0 hidden items-center justify-center md:flex"
+      className="pointer-events-none fixed right-[4vw] top-[28vh] z-20 md:right-[7vw] md:top-1/2 md:-translate-y-1/2"
     >
       {projects.map((project) => {
         const isActive = project.uid === activeProject?.uid;
@@ -98,8 +79,8 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
             key={project.id}
             field={image}
             fallbackAlt=""
-            sizes="45vw"
-            className={`absolute aspect-[4/5] w-[38vw] max-w-[560px] object-cover transition-opacity duration-700 ease-out ${
+            sizes="(min-width: 768px) 32vw, 38vw"
+            className={`absolute right-0 top-0 aspect-[4/5] w-[38vw] max-w-[440px] object-cover transition-opacity duration-700 ease-out md:w-[32vw] md:max-w-[520px] md:-translate-y-1/2 ${
               isActive ? "opacity-100" : "opacity-0"
             }`}
           />
@@ -142,33 +123,23 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
           repositioned relative to that ancestor instead of the viewport —
           which made this thumbnail drift during the enter animation. Only
           portals once mounted client-side to avoid a hydration mismatch. */}
-      {mounted && createPortal(desktopBackdrop, document.body)}
+      {mounted && createPortal(thumbnailPreview, document.body)}
       {mounted && createPortal(scrollHint, document.body)}
 
-      <main className="relative z-10 flex max-w-[54%] flex-col px-4 pb-28 pt-20 md:max-w-none md:px-8 md:py-0">
+      <main className="relative z-0 max-w-[54%] px-4 pb-28 pt-20 md:max-w-[58%] md:px-8 md:pt-28">
         {Array.from({ length: REPEAT_COUNT }).map((_, repeatIdx) => (
           <ul
             key={repeatIdx}
             ref={repeatIdx === 0 ? blockRef : undefined}
             aria-hidden={repeatIdx !== Math.floor(REPEAT_COUNT / 2)}
-            className="flex flex-col md:items-center"
+            className="flex flex-col"
           >
             {projects.map((project) => (
-              <li
-                key={`${repeatIdx}-${project.id}`}
-                className="leading-[0.9] md:flex md:h-screen md:snap-center md:items-center md:justify-center md:leading-none"
-              >
+              <li key={`${repeatIdx}-${project.id}`} className="leading-[0.9]">
                 <Link
                   href={`/project/${project.uid}`}
                   data-project-uid={project.uid}
-                  onMouseEnter={(e) => {
-                    if (isTouch) return;
-                    setActiveUid(project.uid);
-                    e.currentTarget.scrollIntoView({
-                      block: "center",
-                      behavior: "smooth",
-                    });
-                  }}
+                  onMouseEnter={() => !isTouch && setActiveUid(project.uid)}
                   onMouseLeave={() =>
                     !isTouch &&
                     setActiveUid((current) =>
@@ -176,10 +147,8 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
                     )
                   }
                   onFocus={() => setActiveUid(project.uid)}
-                  className={`block font-display font-black uppercase leading-[0.9] tracking-[-0.03em] text-[#111111] transition-all duration-150 focus-visible:outline-none text-[10.5vw] md:text-[5vw] ${
-                    activeProject?.uid === project.uid
-                      ? "md:text-[#111111]"
-                      : "md:text-[#111111]/25"
+                  className={`block font-display font-black uppercase leading-[0.9] tracking-[-0.03em] text-[#111111] transition-opacity duration-150 hover:opacity-40 active:opacity-40 focus-visible:opacity-40 focus-visible:outline-none text-[10.5vw] md:text-[5vw] ${
+                    activeProject?.uid === project.uid ? "opacity-40" : ""
                   }`}
                 >
                   {project.data.name}
