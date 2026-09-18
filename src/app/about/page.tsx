@@ -24,7 +24,7 @@ export default async function AboutPage() {
           }`}
         >
           <div
-            className={`min-w-0 max-w-[64ch] text-[clamp(15px,3.6vw,19px)] leading-[1.35] md:text-[clamp(15px,1.15vw,19px)] ${
+            className={`min-w-0 max-w-[64ch] text-[3.6vw] leading-[1.35] md:text-[1.15vw] ${
               hasPortrait ? "lg:flex-[1.2]" : ""
             }`}
           >

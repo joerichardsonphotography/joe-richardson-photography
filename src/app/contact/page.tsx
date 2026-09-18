@@ -22,7 +22,7 @@ export default async function ContactPage() {
           Contact
         </h1>
 
-        <div className="max-w-[56ch] text-[clamp(15px,3.6vw,19px)] leading-[1.35] md:text-[clamp(15px,1.15vw,19px)]">
+        <div className="max-w-[56ch] text-[3.6vw] leading-[1.35] md:text-[1.15vw]">
           {isFilled.richText(page.data.intro) && (
             <div className="mb-8">
               <PrismicRichText
