@@ -116,14 +116,25 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
 
   return (
     <>
-      {/* Rendered via portal directly into document.body so it stays truly
-          fixed to the viewport. Without this, the page-transition wrapper
-          in template.tsx applies a CSS transform to its animated container,
-          and any `position: fixed` descendant of a transformed element is
-          repositioned relative to that ancestor instead of the viewport —
-          which made this thumbnail drift during the enter animation. Only
-          portals once mounted client-side to avoid a hydration mismatch. */}
-      {mounted && createPortal(thumbnailPreview, document.body)}
+      {/* thumbnailPreview is portaled into #mobile-backdrop-portal, a node
+          rendered in layout.tsx BEFORE {children} — not document.body.
+          The page-transition wrapper in template.tsx (which wraps
+          {children}, including this component) applies a CSS transform,
+          creating a new stacking context for everything inside it; once
+          that'''s true, z-index alone can'''t reliably rank this image
+          against the text list, since document.body would place a
+          portaled node'''s DOM position *after* {children} regardless of
+          z-index. Landing in an explicit, earlier DOM sibling instead
+          guarantees correct paint order (image behind text) without
+          relying on z-index at all. Desktop is unaffected: this element
+          is `position: fixed`, so its *visual* position is set by the
+          viewport, not by which DOM node it'''s portaled into. Only portals
+          once mounted client-side to avoid a hydration mismatch. */}
+      {mounted &&
+        createPortal(
+          thumbnailPreview,
+          document.getElementById("mobile-backdrop-portal") ?? document.body,
+        )}
       {mounted && createPortal(scrollHint, document.body)}
 
       <main className="relative z-10 max-w-full px-4 pb-28 pt-20 md:max-w-[58%] md:px-8 md:pt-28">
