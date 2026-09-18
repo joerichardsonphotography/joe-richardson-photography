@@ -33,6 +33,21 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
 
   useInfiniteScrollLoop(blockRef, REPEAT_COUNT);
 
+  // Mobile has no hover state to hint that the list scrolls/loops, unlike
+  // desktop where hovering a name immediately shows a preview. This fades
+  // out a small "more below" cue after the first scroll, mobile-only.
+  const [hasScrolled, setHasScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => {
+      setHasScrolled(true);
+    };
+    window.addEventListener("scroll", onScroll, {
+      passive: true,
+      once: true,
+    });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   const activeProject = projects.find((p) => p.uid === activeUid) ?? null;
 
   if (projects.length === 0) {
@@ -73,6 +88,31 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
     </div>
   );
 
+  const scrollHint = (
+    <div
+      aria-hidden
+      className={`pointer-events-none fixed bottom-8 left-1/2 z-20 -translate-x-1/2 transition-opacity duration-500 md:hidden ${
+        hasScrolled ? "opacity-0" : "opacity-100"
+      }`}
+    >
+      <svg
+        width="20"
+        height="12"
+        viewBox="0 0 20 12"
+        fill="none"
+        className="animate-bounce"
+      >
+        <path
+          d="M1 1L10 10L19 1"
+          stroke="#B5241C"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </div>
+  );
+
   return (
     <>
       {/* Rendered via portal directly into document.body so it stays truly
@@ -83,6 +123,7 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
           which made this thumbnail drift during the enter animation. Only
           portals once mounted client-side to avoid a hydration mismatch. */}
       {mounted && createPortal(thumbnailPreview, document.body)}
+      {mounted && createPortal(scrollHint, document.body)}
 
       <main className="relative z-0 max-w-[54%] px-4 pb-28 pt-20 md:max-w-[58%] md:px-8 md:pt-28">
         {Array.from({ length: REPEAT_COUNT }).map((_, repeatIdx) => (

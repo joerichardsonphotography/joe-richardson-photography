@@ -114,7 +114,7 @@ export function ProjectGallery({ project }: { project: ProjectDoc }) {
   );
 
   return (
-    <div className="mt-[8vh] flex flex-col items-start gap-[8vw] [--gallery-scale:0.4] lg:mt-[16vh] lg:flex-row lg:[--gallery-scale:1]">
+    <div className="mt-[8vh] flex flex-col items-start gap-[8vw] [--gallery-scale:0.65] lg:mt-[16vh] lg:flex-row lg:[--gallery-scale:1]">
       {/* Column 1: meta info + first third of images */}
       <div className="w-full min-w-0 lg:min-w-0 lg:flex-[1.3]">
         <div className="mb-[6vh] font-display font-black text-[4.2vw] uppercase leading-[0.95] tracking-[-0.02em] text-[#111111] md:text-[1.9vw] lg:mb-[13vh]">
