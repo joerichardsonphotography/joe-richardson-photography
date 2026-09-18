@@ -26,14 +26,12 @@ const MARGIN_BOTTOM = [26, 34, 30, 28, 38, 26, 32, 28];
 
 function GalleryImage({
   image,
-  alt,
   widthClass,
   marginTopVh,
   marginBottomVh,
   priority,
 }: {
   image: NonNullable<ProjectDoc["data"]["gallery"][number]["image"]>;
-  alt: string;
   widthClass: string;
   marginTopVh: number;
   marginBottomVh: number;
@@ -50,11 +48,16 @@ function GalleryImage({
         marginBottom: `calc(${marginBottomVh}vh * var(--gallery-scale, 1))`,
       }}
     >
+      {/* No alt prop here: PrismicNextImage automatically uses the Image
+          field's own alt text (written per-photo in Prismic) unless we
+          override it. fallbackAlt="" only kicks in for the rare image
+          that was uploaded without alt text, so it degrades to decorative
+          rather than announcing nothing useful. */}
       <PrismicNextImage
         field={image}
-        alt=""
         fallbackAlt=""
         priority={priority}
+        sizes="(min-width: 1024px) 40vw, 100vw"
         onLoad={(e) => {
           const img = e.currentTarget;
           if (img.naturalWidth > img.naturalHeight) setIsLandscape(true);
@@ -62,7 +65,6 @@ function GalleryImage({
         style={{ width: `${scale * 100}%`, maxWidth: `${scale * 100}%` }}
         className="h-auto block"
       />
-      <span className="sr-only">{alt}</span>
     </figure>
   );
 }
@@ -124,7 +126,6 @@ export function ProjectGallery({ project }: { project: ProjectDoc }) {
           <GalleryImage
             key={i}
             image={img}
-            alt={`${data.name} — detail ${i * 3 + 1}`}
             widthClass={WIDTH_PATTERN[(i * 3) % WIDTH_PATTERN.length]}
             marginTopVh={MARGIN_TOP[(i * 3) % MARGIN_TOP.length]}
             marginBottomVh={MARGIN_BOTTOM[(i * 3) % MARGIN_BOTTOM.length]}
@@ -138,7 +139,6 @@ export function ProjectGallery({ project }: { project: ProjectDoc }) {
           <GalleryImage
             key={i}
             image={img}
-            alt={`${data.name} — detail ${i * 3 + 2}`}
             widthClass={WIDTH_PATTERN[(i * 3 + 1) % WIDTH_PATTERN.length]}
             marginTopVh={MARGIN_TOP[(i * 3 + 1) % MARGIN_TOP.length]}
             marginBottomVh={MARGIN_BOTTOM[(i * 3 + 1) % MARGIN_BOTTOM.length]}
@@ -152,19 +152,17 @@ export function ProjectGallery({ project }: { project: ProjectDoc }) {
           <figure className="mb-[9vh]">
             <PrismicNextImage
               field={coverImage}
-              alt=""
               fallbackAlt=""
               priority
+              sizes="(min-width: 1024px) 30vw, 100vw"
               className="block h-auto w-full"
             />
-            <span className="sr-only">{data.name} — cover</span>
           </figure>
         )}
         {columns[2].map((img, i) => (
           <GalleryImage
             key={i}
             image={img}
-            alt={`${data.name} — detail ${i * 3 + 3}`}
             widthClass={WIDTH_PATTERN[(i * 3 + 2) % WIDTH_PATTERN.length]}
             marginTopVh={MARGIN_TOP[(i * 3 + 2) % MARGIN_TOP.length]}
             marginBottomVh={MARGIN_BOTTOM[(i * 3 + 2) % MARGIN_BOTTOM.length]}

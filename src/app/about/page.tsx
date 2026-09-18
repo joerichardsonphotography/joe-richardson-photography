@@ -42,7 +42,6 @@ export default async function AboutPage() {
             <div className="order-first lg:order-none lg:flex-1 lg:shrink-0">
               <PrismicNextImage
                 field={page.data.portrait}
-                alt=""
                 fallbackAlt=""
                 priority
                 className="block h-auto w-full max-w-[440px] object-cover"

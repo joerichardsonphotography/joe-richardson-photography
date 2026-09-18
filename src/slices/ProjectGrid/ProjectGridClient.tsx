@@ -79,6 +79,7 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
             key={project.id}
             field={image}
             fallbackAlt=""
+            sizes="(min-width: 768px) 32vw, 38vw"
             className={`absolute right-0 top-0 aspect-[4/5] w-[38vw] max-w-[440px] object-cover transition-opacity duration-300 ease-out md:w-[32vw] md:max-w-[520px] md:-translate-y-1/2 ${
               isActive ? "opacity-100" : "opacity-0"
             }`}
