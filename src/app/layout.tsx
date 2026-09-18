@@ -5,6 +5,7 @@ import { PrismicNextImage } from "@prismicio/next";
 import { isFilled } from "@prismicio/client";
 import { createClient } from "@/prismicio";
 import { BackHomeLink } from "@/components/BackHomeLink";
+import { MobileNav } from "@/components/MobileNav";
 import { ScrollToTopOnNavigate } from "@/components/ScrollToTopOnNavigate";
 import "./globals.css";
 
@@ -41,8 +42,13 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         {/* Back-to-home arrow — top-left on every page except home itself */}
         <BackHomeLink />
 
-        {/* Quiet top-right nav — present on every page */}
-        <nav className="fixed right-4 top-6 z-40 flex flex-col items-end gap-1 md:right-6 md:top-8">
+        {/* Mobile: hamburger + full-screen menu overlay */}
+        <MobileNav />
+
+        {/* Desktop: quiet top-right text nav, present on every page.
+            Hidden on mobile in favor of MobileNav's hamburger, since the
+            two would otherwise occupy the same corner. */}
+        <nav className="fixed right-4 top-6 z-40 hidden flex-col items-end gap-1 md:right-6 md:top-8 md:flex">
           <Link
             href="/about"
             className="font-display font-black text-[6vw] uppercase leading-none tracking-[-0.02em] text-[#111111] transition-opacity duration-150 hover:opacity-50 active:opacity-50 md:text-[1.4vw]"
