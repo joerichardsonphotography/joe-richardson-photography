@@ -64,7 +64,7 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
   const thumbnailPreview = (
     <div
       aria-hidden
-      className="pointer-events-none fixed left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 md:left-auto md:right-[7vw] md:top-1/2 md:translate-x-0"
+      className="pointer-events-none fixed left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 md:left-auto md:right-[7vw] md:top-1/2 md:z-20 md:translate-x-0"
     >
       {projects.map((project) => {
         const isActive = project.uid === activeProject?.uid;
@@ -126,7 +126,7 @@ export function ProjectGridClient({ projects }: { projects: Project[] }) {
       {mounted && createPortal(thumbnailPreview, document.body)}
       {mounted && createPortal(scrollHint, document.body)}
 
-      <main className="relative z-0 max-w-full px-4 pb-28 pt-20 md:max-w-[58%] md:px-8 md:pt-28">
+      <main className="relative z-10 max-w-full px-4 pb-28 pt-20 md:max-w-[58%] md:px-8 md:pt-28">
         {Array.from({ length: REPEAT_COUNT }).map((_, repeatIdx) => (
           <ul
             key={repeatIdx}
