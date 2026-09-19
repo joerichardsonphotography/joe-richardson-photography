@@ -115,59 +115,105 @@ export function ProjectGallery({ project }: { project: ProjectDoc }) {
     </>
   );
 
+  // Mobile: every image (cover first, then gallery in order) in a single
+  // flat list, laid out as a genuine 2-column CSS grid with small,
+  // consistent gaps — edge-to-edge on the phone screen, not inset like
+  // the rest of the site's content. Desktop is entirely unaffected: this
+  // whole block is hidden at the lg breakpoint, where the existing
+  // 3-column masonry (rendered separately below) takes over instead.
+  const allImagesInOrder = [
+    ...(isFilled.image(coverImage) ? [coverImage] : []),
+    ...galleryImages,
+  ];
+
   return (
-    <div className="mt-[8vh] flex flex-col items-start gap-[8vw] [--gallery-scale:0.65] lg:mt-[16vh] lg:flex-row lg:[--gallery-scale:1]">
-      {/* Column 1: meta info + first third of images */}
-      <div className="w-full min-w-0 lg:min-w-0 lg:flex-[1.3]">
-        <div className="mb-[6vh] font-display font-black text-[4.2vw] uppercase leading-[0.95] tracking-[-0.02em] text-[#111111] md:text-[1.9vw] lg:mb-[13vh]">
-          {infoBlock}
-        </div>
-        {columns[0].map((img, i) => (
-          <GalleryImage
-            key={i}
-            image={img}
-            widthClass={WIDTH_PATTERN[(i * 3) % WIDTH_PATTERN.length]}
-            marginTopVh={MARGIN_TOP[(i * 3) % MARGIN_TOP.length]}
-            marginBottomVh={MARGIN_BOTTOM[(i * 3) % MARGIN_BOTTOM.length]}
-          />
-        ))}
+    <div className="mt-[8vh] lg:mt-[16vh]">
+      {/* Mobile-only: info heading above the grid, full width. Hidden at
+          lg since desktop keeps its own copy of this text inside column
+          1 of the masonry layout below. */}
+      <div className="mb-[5vh] font-display font-black text-[4.2vw] uppercase leading-[0.95] tracking-[-0.02em] text-[#111111] lg:hidden">
+        {infoBlock}
       </div>
 
-      {/* Column 2: narrower, sits lower to break the grid line */}
-      <div className="w-full min-w-0 lg:mt-[20vh] lg:min-w-0 lg:flex-[0.85]">
-        {columns[1].map((img, i) => (
-          <GalleryImage
-            key={i}
-            image={img}
-            widthClass={WIDTH_PATTERN[(i * 3 + 1) % WIDTH_PATTERN.length]}
-            marginTopVh={MARGIN_TOP[(i * 3 + 1) % MARGIN_TOP.length]}
-            marginBottomVh={MARGIN_BOTTOM[(i * 3 + 1) % MARGIN_BOTTOM.length]}
-          />
-        ))}
-      </div>
-
-      {/* Column 3: cover image pinned at top, then remaining images */}
-      <div className="w-full shrink-0 lg:w-[30vw] lg:max-w-[480px]">
-        {isFilled.image(coverImage) && (
-          <figure className="mb-[9vh]">
+      {/* Mobile-only 2-column edge-to-edge grid. -mx-4 / md:-mx-8 cancel
+          out <main>'s own px-4 / md:px-8 exactly at each breakpoint —
+          without matching md's larger padding too, screens between 768
+          and 1023px (past md, short of lg) would be under-cancelled and
+          left with a visible partial gap instead of true edge-to-edge. */}
+      <div className="-mx-4 grid grid-cols-2 gap-1 md:-mx-8 lg:hidden">
+        {allImagesInOrder.map((img, i) => (
+          <figure key={i} className="relative">
             <PrismicNextImage
-              field={coverImage}
+              field={img}
               fallbackAlt=""
-              priority
-              sizes="(min-width: 1024px) 30vw, 100vw"
-              className="block h-auto w-full"
+              priority={i < 4}
+              sizes="50vw"
+              className="block h-auto w-full object-cover"
             />
           </figure>
-        )}
-        {columns[2].map((img, i) => (
-          <GalleryImage
-            key={i}
-            image={img}
-            widthClass={WIDTH_PATTERN[(i * 3 + 2) % WIDTH_PATTERN.length]}
-            marginTopVh={MARGIN_TOP[(i * 3 + 2) % MARGIN_TOP.length]}
-            marginBottomVh={MARGIN_BOTTOM[(i * 3 + 2) % MARGIN_BOTTOM.length]}
-          />
         ))}
+      </div>
+
+      {/* Desktop-only: the existing asymmetric 3-column masonry,
+          completely unchanged from before this mobile-specific grid was
+          added. Hidden below lg, where the grid above takes over. */}
+      <div className="hidden lg:flex lg:flex-row lg:items-start lg:gap-[8vw] lg:[--gallery-scale:1]">
+        {/* Column 1: meta info + first third of images */}
+        <div className="lg:min-w-0 lg:flex-[1.3]">
+          <div className="mb-[13vh] font-display font-black text-[1.9vw] uppercase leading-[0.95] tracking-[-0.02em] text-[#111111]">
+            {infoBlock}
+          </div>
+          {columns[0].map((img, i) => (
+            <GalleryImage
+              key={i}
+              image={img}
+              widthClass={WIDTH_PATTERN[(i * 3) % WIDTH_PATTERN.length]}
+              marginTopVh={MARGIN_TOP[(i * 3) % MARGIN_TOP.length]}
+              marginBottomVh={MARGIN_BOTTOM[(i * 3) % MARGIN_BOTTOM.length]}
+            />
+          ))}
+        </div>
+
+        {/* Column 2: narrower, sits lower to break the grid line */}
+        <div className="lg:mt-[20vh] lg:min-w-0 lg:flex-[0.85]">
+          {columns[1].map((img, i) => (
+            <GalleryImage
+              key={i}
+              image={img}
+              widthClass={WIDTH_PATTERN[(i * 3 + 1) % WIDTH_PATTERN.length]}
+              marginTopVh={MARGIN_TOP[(i * 3 + 1) % MARGIN_TOP.length]}
+              marginBottomVh={
+                MARGIN_BOTTOM[(i * 3 + 1) % MARGIN_BOTTOM.length]
+              }
+            />
+          ))}
+        </div>
+
+        {/* Column 3: cover image pinned at top, then remaining images */}
+        <div className="lg:w-[30vw] lg:max-w-[480px] lg:shrink-0">
+          {isFilled.image(coverImage) && (
+            <figure className="mb-[9vh]">
+              <PrismicNextImage
+                field={coverImage}
+                fallbackAlt=""
+                priority
+                sizes="30vw"
+                className="block h-auto w-full"
+              />
+            </figure>
+          )}
+          {columns[2].map((img, i) => (
+            <GalleryImage
+              key={i}
+              image={img}
+              widthClass={WIDTH_PATTERN[(i * 3 + 2) % WIDTH_PATTERN.length]}
+              marginTopVh={MARGIN_TOP[(i * 3 + 2) % MARGIN_TOP.length]}
+              marginBottomVh={
+                MARGIN_BOTTOM[(i * 3 + 2) % MARGIN_BOTTOM.length]
+              }
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
