@@ -93,22 +93,25 @@ body {
 
 /* Mobile homepage: the enlarged, tappable image's entrance once
    scrolling settles (see MobileHomepage's isSettledActive branch).
-   Starts smaller and grows past its final size before settling back —
-   a spring-style overshoot bounce, rather than a flat linear/eased
-   grow — combined with the cubic-bezier easing on the animation
+   Genuinely starts at the small thumbnail's real size (55vw is ~0.671
+   of the settled 82vw width) and grows the whole way to the enlarged
+   size, overshooting past it before settling back — rather than a
+   subtle wobble that starts almost at final size, the growth itself
+   needs to be clearly visible as an expansion from the smaller
+   thumbnail. Combined with the cubic-bezier easing on the animation
    shorthand itself (which also overshoots past 1 on scale, doubling
    the spring feel). translate(-50%, -50%) is baked into every step
    since this animation replaces the element's static centering
    transform entirely while it plays. */
 @keyframes settle-bounce {
   from {
-    transform: translate(-50%, -50%) scale(0.85);
+    transform: translate(-50%, -50%) scale(0.671);
   }
-  60% {
-    transform: translate(-50%, -50%) scale(1.06);
+  65% {
+    transform: translate(-50%, -50%) scale(1.08);
   }
-  80% {
-    transform: translate(-50%, -50%) scale(0.98);
+  82% {
+    transform: translate(-50%, -50%) scale(0.97);
   }
   to {
     transform: translate(-50%, -50%) scale(1);
