@@ -164,8 +164,13 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
   const scrollHint = (
     <div
       aria-hidden
+      // Shows before the very first scroll (as an initial nudge), and
+      // also any time the reading line isn't currently over a project
+      // name — i.e. whenever there's no thumbnail on screen, just plain
+      // text — since that's exactly when a person might not realize
+      // there's more to scroll toward.
       className={`pointer-events-none fixed bottom-20 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-2 transition-opacity duration-1000 ${
-        hasScrolled ? "opacity-0" : "opacity-100"
+        !hasScrolled || !activeProject ? "opacity-100" : "opacity-0"
       }`}
     >
       <span className="font-display text-[3.2vw] font-black uppercase tracking-[0.1em] text-[#111111]/60">
