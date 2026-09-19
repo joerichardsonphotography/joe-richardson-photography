@@ -115,16 +115,27 @@ export function ProjectGallery({ project }: { project: ProjectDoc }) {
     </>
   );
 
-  // Mobile: every image (cover first, then gallery in order) in a single
-  // flat list, laid out as a genuine 2-column CSS grid with small,
-  // consistent gaps — edge-to-edge on the phone screen, not inset like
-  // the rest of the site's content. Desktop is entirely unaffected: this
-  // whole block is hidden at the lg breakpoint, where the existing
-  // 3-column masonry (rendered separately below) takes over instead.
+  // Mobile: every image (cover first, then gallery in order) split into
+  // two independent columns, each its own vertical flex stack — genuine
+  // masonry, where each column packs its own images tightly regardless
+  // of the other's heights. A plain `grid grid-cols-2` was tried first
+  // and looked right in theory, but CSS grid lays items out in rows
+  // whose height is set by the tallest item in that row: if one column's
+  // image is much taller than the other's, grid leaves a visible gap in
+  // the shorter column rather than letting its next image flow up to
+  // fill that space — confirmed as a real, visible bug once tested live,
+  // not just a style preference. Splitting into two separate columns
+  // sidesteps that entirely, since each column's items stack against
+  // each other directly with no shared row height to wait for. Desktop
+  // is entirely unaffected: this whole block is hidden at the lg
+  // breakpoint, where the existing 3-column masonry (rendered
+  // separately below) takes over instead.
   const allImagesInOrder = [
     ...(isFilled.image(coverImage) ? [coverImage] : []),
     ...galleryImages,
   ];
+  const mobileColumns: (typeof allImagesInOrder)[] = [[], []];
+  allImagesInOrder.forEach((img, i) => mobileColumns[i % 2].push(img));
 
   return (
     <div className="mt-[8vh] lg:mt-[16vh]">
@@ -135,22 +146,32 @@ export function ProjectGallery({ project }: { project: ProjectDoc }) {
         {infoBlock}
       </div>
 
-      {/* Mobile-only 2-column edge-to-edge grid. -mx-4 / md:-mx-8 cancel
-          out <main>'s own px-4 / md:px-8 exactly at each breakpoint —
-          without matching md's larger padding too, screens between 768
-          and 1023px (past md, short of lg) would be under-cancelled and
-          left with a visible partial gap instead of true edge-to-edge. */}
-      <div className="-mx-4 grid grid-cols-2 gap-1 md:-mx-8 lg:hidden">
-        {allImagesInOrder.map((img, i) => (
-          <figure key={i} className="relative">
-            <PrismicNextImage
-              field={img}
-              fallbackAlt=""
-              priority={i < 4}
-              sizes="50vw"
-              className="block h-auto w-full object-cover"
-            />
-          </figure>
+      {/* Mobile-only 2-column edge-to-edge masonry. -mx-4 / md:-mx-8
+          cancel out <main>'s own px-4 / md:px-8 exactly at each
+          breakpoint — without matching md's larger padding too, screens
+          between 768 and 1023px (past md, short of lg) would be
+          under-cancelled and left with a visible partial gap instead of
+          true edge-to-edge. */}
+      <div className="-mx-4 flex gap-1 md:-mx-8 lg:hidden">
+        {mobileColumns.map((column, colIdx) => (
+          <div key={colIdx} className="flex flex-1 flex-col gap-1">
+            {column.map((img, i) => (
+              <figure key={i} className="relative">
+                <PrismicNextImage
+                  field={img}
+                  fallbackAlt=""
+                  // Images alternate i % 2 into these two columns, so a
+                  // given column/position pair's original position in
+                  // allImagesInOrder is i * 2 + colIdx — that's what
+                  // "first 4 images" actually needs to check, not a
+                  // formula assuming both columns are the same length.
+                  priority={i * 2 + colIdx < 4}
+                  sizes="50vw"
+                  className="block h-auto w-full object-cover"
+                />
+              </figure>
+            ))}
+          </div>
         ))}
       </div>
 
