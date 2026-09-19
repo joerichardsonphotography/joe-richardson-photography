@@ -164,10 +164,13 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
   const scrollHint = (
     <div
       aria-hidden
-      className={`pointer-events-none fixed bottom-20 left-1/2 z-20 -translate-x-1/2 transition-opacity duration-1000 ${
+      className={`pointer-events-none fixed bottom-20 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-2 transition-opacity duration-1000 ${
         hasScrolled || isSettled ? "opacity-0" : "opacity-100"
       }`}
     >
+      <span className="font-display text-[3.2vw] font-black uppercase tracking-[0.1em] text-[#111111]/60">
+        Scroll to explore
+      </span>
       <svg
         width="20"
         height="12"
