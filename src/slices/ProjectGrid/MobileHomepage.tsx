@@ -34,7 +34,7 @@ const REPEAT_COUNT = 5;
  */
 export function MobileHomepage({ projects }: { projects: Project[] }) {
   const blockRef = useRef<HTMLUListElement | null>(null);
-  const { activeUid } = useActiveProjectLink();
+  const { activeUid, isTouch } = useActiveProjectLink();
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -212,6 +212,23 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
 
   return (
     <>
+      {/* TEMPORARY DEBUG BADGE — remove once the initial-load active-project
+          issue is diagnosed. Shows live state directly on screen so it can
+          be read without any inspector/dev-tools setup. */}
+      {mounted &&
+        createPortal(
+          <div
+            aria-hidden
+            className="pointer-events-none fixed left-2 top-2 z-[999] rounded bg-black/80 px-2 py-1 font-mono text-[10px] leading-tight text-white"
+          >
+            <div>activeUid: {activeUid ?? "null"}</div>
+            <div>isSettled: {String(isSettled)}</div>
+            <div>isTouch: {String(isTouch)}</div>
+            <div>hasScrolled: {String(hasScrolled)}</div>
+          </div>,
+          document.body,
+        )}
+
       {/* Both portaled straight to document.body, independently of
           DesktopHomepage's own portal. Order matters here: the backdrop
           is portaled first, so it lands earlier in document.body's
