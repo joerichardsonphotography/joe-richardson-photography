@@ -37,7 +37,13 @@ export function useActiveProjectLink() {
       setActiveUid((current) => (current === uid ? current : uid));
     };
 
-    readAtLine();
+    // Deliberately no initial readAtLine() call here — on load, before
+    // any scroll, this should report no active project at all (the
+    // mobile homepage shows the plain grey list with no thumbnail then).
+    // Calling it immediately on mount would resolve whatever project
+    // happens to sit at the reading line at the initial scroll position
+    // (which useInfiniteScrollLoop sets to its middle repeated copy),
+    // showing a thumbnail before the person has done anything.
     window.addEventListener("scroll", readAtLine, { passive: true });
     window.addEventListener("resize", readAtLine);
     return () => {
