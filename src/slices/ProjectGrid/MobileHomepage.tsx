@@ -7,6 +7,7 @@ import { PrismicNextImage } from "@prismicio/next";
 import { Content, isFilled } from "@prismicio/client";
 import { useInfiniteScrollLoop } from "@/hooks/useInfiniteScrollLoop";
 import { useActiveProjectLink } from "@/hooks/useActiveProjectLink";
+import { useIsScrollSettled } from "@/hooks/useIsScrollSettled";
 
 type Project = Content.ProjectDocument;
 
@@ -15,7 +16,9 @@ const REPEAT_COUNT = 5;
 /**
  * Mobile-only homepage: full-width grey text list, with the active
  * project's name turning solid black and its cover image appearing
- * centered on screen behind the text.
+ * centered behind the text. Once scrolling genuinely stops, that image
+ * grows into a large, tappable centerpiece and the text dims (but stays
+ * visible) around it; scrolling again immediately reverts both.
  *
  * Deliberately a full, separate component rather than sharing markup
  * with DesktopHomepage via `md:` overrides — that approach previously
@@ -55,6 +58,17 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
 
   const activeProject = projects.find((p) => p.uid === activeUid) ?? null;
 
+  // Once scrolling genuinely stops (not just pauses mid-scroll), the
+  // active project's image grows into a large, tappable centerpiece and
+  // the text list dims to a low opacity around it — rather than
+  // disappearing entirely, so there's always some context on screen.
+  // Deliberately no auto-navigation or timer here: the person taps the
+  // image themselves when they want to open that project, and scrolling
+  // again immediately fades the list back in and shrinks the image back
+  // down. See useIsScrollSettled for why this hook has no side effects
+  // of its own beyond reporting the boolean.
+  const isSettled = useIsScrollSettled();
+
   if (projects.length === 0) {
     return (
       <div className="flex min-h-[60vh] w-full items-center justify-center px-6 text-center">
@@ -67,33 +81,64 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
   }
 
   // Centered backdrop image, one per project, cross-fading based on which
-  // is under the touch reading line. Sits behind the text purely through
-  // paint order (portaled ahead of the text list below, both direct
-  // children of the same fragment) plus its own z-0, not through any
-  // cross-file stacking-context workaround.
+  // is under the touch reading line. Normally sits behind the text
+  // purely through paint order (portaled ahead of the text list below,
+  // both direct children of the same fragment) plus its own z-0 — but
+  // once scrolling settles, the active image needs to become tappable,
+  // which means it has to rise above the text in stacking order for
+  // that state specifically (z-30, above main's z-10), while the text
+  // list gets pointer-events-none in that same state so taps pass
+  // through to the image rather than being caught by an invisible link
+  // still sitting on top of it. Growing the same element rather than
+  // swapping in a separate "revealed" element keeps the transition to
+  // and from the settled state a single smooth resize, not a cross-fade
+  // between two different images.
   const backdropImage = (
     <div
-      aria-hidden
-      className="pointer-events-none fixed left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2"
+      aria-hidden={!isSettled}
+      className={`fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ${
+        isSettled ? "z-30" : "z-0"
+      }`}
     >
       {projects.map((project) => {
         const isActive = project.uid === activeProject?.uid;
+        const isSettledActive = isActive && isSettled;
         const cover = project.data.cover_image;
         const firstGalleryImage = project.data.gallery?.[0]?.image;
         const image = isFilled.image(cover) ? cover : firstGalleryImage;
 
         if (!isFilled.image(image)) return null;
 
-        return (
+        const imageEl = (
           <PrismicNextImage
-            key={project.id}
             field={image}
             fallbackAlt=""
-            sizes="55vw"
-            className={`absolute left-1/2 top-1/2 aspect-[4/5] w-[55vw] max-w-[380px] -translate-x-1/2 -translate-y-1/2 object-cover transition-opacity duration-700 ease-out ${
-              isActive ? "opacity-100" : "opacity-0"
-            }`}
+            sizes="(min-width: 0px) 82vw, 55vw"
+            className={`absolute left-1/2 top-1/2 aspect-[4/5] -translate-x-1/2 -translate-y-1/2 object-cover transition-[opacity,width] duration-700 ease-out ${
+              isSettledActive
+                ? "w-[82vw] max-w-[520px]"
+                : "w-[55vw] max-w-[380px]"
+            } ${isActive ? "opacity-100" : "opacity-0"}`}
           />
+        );
+
+        // Only the settled, active image is ever interactive — every
+        // other state of this element is `pointer-events-none` so it
+        // never intercepts taps meant for the text list underneath
+        // while it's still just a passive backdrop.
+        return isSettledActive ? (
+          <Link
+            key={project.id}
+            href={`/project/${project.uid}`}
+            aria-label={`Open ${project.data.name}`}
+            className="contents"
+          >
+            {imageEl}
+          </Link>
+        ) : (
+          <div key={project.id} className="pointer-events-none contents">
+            {imageEl}
+          </div>
         );
       })}
     </div>
@@ -103,7 +148,7 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
     <div
       aria-hidden
       className={`pointer-events-none fixed bottom-20 left-1/2 z-20 -translate-x-1/2 transition-opacity duration-1000 ${
-        hasScrolled ? "opacity-0" : "opacity-100"
+        hasScrolled || isSettled ? "opacity-0" : "opacity-100"
       }`}
     >
       <svg
@@ -135,7 +180,11 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
       {mounted && createPortal(backdropImage, document.body)}
       {mounted && createPortal(scrollHint, document.body)}
 
-      <main className="relative z-10 max-w-full px-4 pb-28 pt-20">
+      <main
+        className={`relative z-10 max-w-full px-4 pb-28 pt-20 transition-[opacity] duration-500 ease-out ${
+          isSettled ? "pointer-events-none opacity-30" : "opacity-100"
+        }`}
+      >
         {Array.from({ length: REPEAT_COUNT }).map((_, repeatIdx) => (
           <ul
             key={repeatIdx}
