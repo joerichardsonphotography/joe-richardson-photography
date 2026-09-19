@@ -180,17 +180,21 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
             field={image}
             fallbackAlt=""
             sizes="(min-width: 0px) 82vw, 55vw"
-            // Slower, eased-out-further growth (900ms, cubic-bezier
-            // easing that decelerates more gradually than the flat
-            // ease-out used elsewhere) — this is the "settle into
-            // reveal" transition specifically, so it's intentionally
-            // more unhurried than the quick opacity cross-fade between
-            // different projects' images, which still wants to feel
-            // snappy rather than lingering.
-            className={`absolute left-1/2 top-1/2 aspect-[4/5] -translate-x-1/2 -translate-y-1/2 object-cover transition-[opacity,width] ${
+            // The enlarged size is always rendered at its final width
+            // (w-[82vw]) — the bounce is driven by transform: scale via
+            // the settle-bounce keyframe animation below, starting small
+            // and overshooting past 1 before settling. Animating
+            // transform rather than width itself is what makes a genuine
+            // spring overshoot practical: scale is GPU-composited and
+            // keyframes can freely go past 100% and back, whereas
+            // animating width directly forces layout recalculation every
+            // frame and doesn't overshoot as cleanly. Not settled/active
+            // images stay at their small size with a plain opacity/width
+            // transition, unaffected by any of this.
+            className={`absolute left-1/2 top-1/2 aspect-[4/5] object-cover ${
               isSettledActive
-                ? "w-[82vw] max-w-[520px] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
-                : "w-[55vw] max-w-[380px] duration-500 ease-out"
+                ? "w-[82vw] max-w-[520px] origin-center animate-[settle-bounce_1100ms_cubic-bezier(0.34,1.56,0.64,1)_both]"
+                : "w-[55vw] max-w-[380px] -translate-x-1/2 -translate-y-1/2 transition-[opacity,width] duration-500 ease-out"
             } ${isActive ? "opacity-100" : "opacity-0"}`}
           />
         );
