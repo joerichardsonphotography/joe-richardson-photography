@@ -37,6 +37,14 @@ export function useSettleAndNavigate(
     null,
   );
   const revealedUidRef = useRef<string | null>(null);
+  // Mirrors isRevealed for reads inside the effect below, without being
+  // a dependency of it — including isRevealed in that dependency array
+  // was the actual bug here: this effect calls setIsRevealed itself,
+  // which would immediately re-run the effect, whose cleanup then read
+  // the *new* isRevealed value and tore down the very state and timer
+  // the effect had just set, in the same tick. Reading a ref instead of
+  // the state value breaks that loop entirely.
+  const isRevealedRef = useRef(false);
 
   useEffect(() => {
     const clearPending = () => {
@@ -48,7 +56,8 @@ export function useSettleAndNavigate(
         clearTimeout(fallbackTimeoutRef.current);
         fallbackTimeoutRef.current = null;
       }
-      if (isRevealed) {
+      if (isRevealedRef.current) {
+        isRevealedRef.current = false;
         setIsRevealed(false);
       }
       revealedUidRef.current = null;
@@ -60,6 +69,7 @@ export function useSettleAndNavigate(
       if (!href) return;
 
       revealedUidRef.current = activeUid;
+      isRevealedRef.current = true;
       setIsRevealed(true);
 
       navigateTimeoutRef.current = setTimeout(() => {
@@ -96,7 +106,7 @@ export function useSettleAndNavigate(
       window.removeEventListener("scrollend", onNativeScrollEnd);
       clearPending();
     };
-  }, [activeUid, getHref, router, isRevealed]);
+  }, [activeUid, getHref, router]);
 
   return isRevealed;
 }
