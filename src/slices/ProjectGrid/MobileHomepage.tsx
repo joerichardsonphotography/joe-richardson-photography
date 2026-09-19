@@ -46,14 +46,30 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
 
   const [hasScrolled, setHasScrolled] = useState(false);
   useEffect(() => {
-    const onScroll = () => {
-      setHasScrolled(true);
-    };
-    window.addEventListener("scroll", onScroll, {
-      passive: true,
-      once: true,
+    // useInfiniteScrollLoop settles the page to its middle repeated copy
+    // on mount via a programmatic window.scrollTo — which fires a real
+    // native `scroll` event, indistinguishable from a genuine user
+    // scroll. Attaching this listener immediately would catch that
+    // initial settle and mark hasScrolled true before anyone has
+    // actually touched the page, hiding "Scroll to explore" on load
+    // when it should always show there. Deferring attachment to the
+    // next animation frame lets that initial settle finish first, so
+    // this only ever catches a real, later scroll.
+    let cleanup: (() => void) | undefined;
+    const frame = requestAnimationFrame(() => {
+      const onScroll = () => {
+        setHasScrolled(true);
+      };
+      window.addEventListener("scroll", onScroll, {
+        passive: true,
+        once: true,
+      });
+      cleanup = () => window.removeEventListener("scroll", onScroll);
     });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      cancelAnimationFrame(frame);
+      cleanup?.();
+    };
   }, []);
 
   const activeProject = projects.find((p) => p.uid === activeUid) ?? null;
