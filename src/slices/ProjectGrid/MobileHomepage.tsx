@@ -193,7 +193,7 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
             // transition, unaffected by any of this.
             className={`absolute left-1/2 top-1/2 aspect-[4/5] object-cover ${
               isSettledActive
-                ? "w-[82vw] max-w-[520px] origin-center animate-[settle-bounce_1100ms_cubic-bezier(0.34,1.56,0.64,1)_both]"
+                ? "w-[82vw] max-w-[520px] origin-center animate-[settle-bounce_3000ms_cubic-bezier(0.34,1.56,0.64,1)_both]"
                 : "w-[55vw] max-w-[380px] -translate-x-1/2 -translate-y-1/2 transition-[opacity,width] duration-500 ease-out"
             } ${isActive ? "opacity-100" : "opacity-0"}`}
           />
