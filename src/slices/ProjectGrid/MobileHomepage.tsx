@@ -152,10 +152,17 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
             field={image}
             fallbackAlt=""
             sizes="(min-width: 0px) 82vw, 55vw"
-            className={`absolute left-1/2 top-1/2 aspect-[4/5] -translate-x-1/2 -translate-y-1/2 object-cover transition-[opacity,width] duration-700 ease-out ${
+            // Slower, eased-out-further growth (900ms, cubic-bezier
+            // easing that decelerates more gradually than the flat
+            // ease-out used elsewhere) — this is the "settle into
+            // reveal" transition specifically, so it's intentionally
+            // more unhurried than the quick opacity cross-fade between
+            // different projects' images, which still wants to feel
+            // snappy rather than lingering.
+            className={`absolute left-1/2 top-1/2 aspect-[4/5] -translate-x-1/2 -translate-y-1/2 object-cover transition-[opacity,width] ${
               isSettledActive
-                ? "w-[82vw] max-w-[520px]"
-                : "w-[55vw] max-w-[380px]"
+                ? "w-[82vw] max-w-[520px] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                : "w-[55vw] max-w-[380px] duration-500 ease-out"
             } ${isActive ? "opacity-100" : "opacity-0"}`}
           />
         );
@@ -244,8 +251,16 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
       {mounted && createPortal(scrollHint, document.body)}
 
       <main
-        className={`relative z-10 max-w-full px-4 pb-28 pt-20 transition-[opacity] duration-500 ease-out ${
-          isSettled ? "pointer-events-none opacity-30" : "opacity-100"
+        // Slower fade (700ms) with a slight delay (150ms) when settling
+        // in, so the image visibly begins growing first and the text
+        // dims in afterward — staggered rather than both changing in
+        // perfect lockstep, which read as mechanical rather than
+        // gradual. No delay when reverting back (scrolling again), since
+        // that should feel immediate/responsive, not anticipatory.
+        className={`relative z-10 max-w-full px-4 pb-28 pt-20 transition-opacity ease-out ${
+          isSettled
+            ? "pointer-events-none opacity-30 duration-700 delay-150"
+            : "opacity-100 duration-300"
         }`}
       >
         {Array.from({ length: REPEAT_COUNT }).map((_, repeatIdx) => (
