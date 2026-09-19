@@ -262,7 +262,7 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
               aria-hidden
               className="absolute left-1/2 top-[calc(50%+55vw)] -translate-x-1/2 animate-[fade-in_0.4s_ease-out_1640ms_both] whitespace-nowrap font-display text-[3.6vw] font-black uppercase tracking-[0.05em] text-[#111111]"
             >
-              View Project →
+              View Gallery →
             </span>
           </Link>
         ) : (
