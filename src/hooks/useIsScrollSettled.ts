@@ -26,6 +26,7 @@ export function useIsScrollSettled(): boolean {
 
   useEffect(() => {
     let fallbackTimeout: ReturnType<typeof setTimeout> | null = null;
+    let cleanup: (() => void) | undefined;
 
     const onScroll = () => {
       setIsSettled(false);
@@ -43,12 +44,27 @@ export function useIsScrollSettled(): boolean {
       setIsSettled(true);
     };
 
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("scrollend", onNativeScrollEnd);
+    // useInfiniteScrollLoop settles the page to its middle repeated copy
+    // on mount via a programmatic window.scrollTo — even with an
+    // "instant" scroll, browsers still fire a genuine `scrollend` once
+    // that position change is applied. Attaching these listeners
+    // immediately would catch that initial settle and report the page
+    // as "settled" (triggering the full-screen reveal) before the
+    // person has scrolled at all. Deferring attachment to the next
+    // animation frame lets that initial settle's events fire and be
+    // missed first, so this only ever reacts to a later, real scroll.
+    const frame = requestAnimationFrame(() => {
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("scrollend", onNativeScrollEnd);
+      cleanup = () => {
+        window.removeEventListener("scroll", onScroll);
+        window.removeEventListener("scrollend", onNativeScrollEnd);
+      };
+    });
 
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("scrollend", onNativeScrollEnd);
+      cancelAnimationFrame(frame);
+      cleanup?.();
       if (fallbackTimeout) clearTimeout(fallbackTimeout);
     };
   }, []);
