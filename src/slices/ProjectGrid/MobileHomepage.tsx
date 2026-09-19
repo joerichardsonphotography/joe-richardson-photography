@@ -96,6 +96,34 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
 
   const activeProject = projects.find((p) => p.uid === activeUid) ?? null;
 
+  // A debounced version of "no active project," used only to decide
+  // whether the scroll hint should reappear — not for the image/text
+  // color logic above, which stays instantly accurate. The reading line
+  // is a single fixed point; it can briefly land in the small gap
+  // between one name and the next while scrolling past, momentarily
+  // resolving no active project even though the person hasn't paused or
+  // lost their place. Without this delay, that split-second gap was
+  // enough to flash "Scroll to explore" back in during ordinary
+  // scrolling, which read as the page losing track rather than a
+  // deliberate pause worth re-prompting for.
+  //
+  // Follows React's documented pattern for resetting state when a prop
+  // changes (adjusting state during render via a render-time comparison,
+  // rather than in an effect) for the immediate "hide" direction, and a
+  // plain effect + timeout for the delayed "show" direction — the only
+  // one that's genuinely asynchronous.
+  const [showHintForNoActive, setShowHintForNoActive] = useState(false);
+  const [prevActiveProject, setPrevActiveProject] = useState(activeProject);
+  if (activeProject !== prevActiveProject) {
+    setPrevActiveProject(activeProject);
+    if (activeProject) setShowHintForNoActive(false);
+  }
+  useEffect(() => {
+    if (activeProject) return;
+    const timeout = setTimeout(() => setShowHintForNoActive(true), 400);
+    return () => clearTimeout(timeout);
+  }, [activeProject]);
+
   // Once scrolling genuinely stops (not just pauses mid-scroll), the
   // active project's image grows into a large, tappable centerpiece and
   // the text list dims to a low opacity around it — rather than
@@ -210,12 +238,15 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
     <div
       aria-hidden
       // Shows before the very first scroll (as an initial nudge), and
-      // also any time the reading line isn't currently over a project
-      // name — i.e. whenever there's no thumbnail on screen, just plain
-      // text — since that's exactly when a person might not realize
-      // there's more to scroll toward.
+      // also once no project has been active for a brief moment (see
+      // showHintForNoActive above) — debounced rather than reacting the
+      // instant activeProject goes null, since the reading line briefly
+      // passing through the small gap between one name and the next
+      // during ordinary scrolling would otherwise flash this hint back
+      // in constantly, which read as the page losing track rather than
+      // a genuine pause worth re-prompting for.
       className={`pointer-events-none fixed bottom-20 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-2 transition-opacity duration-1000 ${
-        !hasScrolled || !activeProject ? "opacity-100" : "opacity-0"
+        !hasScrolled || showHintForNoActive ? "opacity-100" : "opacity-0"
       }`}
     >
       <span className="font-display text-[3.2vw] font-black uppercase tracking-[0.1em] text-[#111111]/60">
