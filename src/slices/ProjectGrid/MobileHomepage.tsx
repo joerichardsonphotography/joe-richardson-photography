@@ -226,7 +226,7 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
             // transition, unaffected by any of this.
             className={`absolute left-1/2 top-1/2 aspect-[4/5] object-cover ${
               isSettledActive
-                ? "w-[82vw] max-w-[520px] origin-center animate-[settle-bounce_3000ms_cubic-bezier(0.34,1.56,0.64,1)_both]"
+                ? "w-[82vw] max-w-[520px] origin-center animate-[settle-bounce_2000ms_cubic-bezier(0.34,1.56,0.64,1)_both]"
                 : "w-[55vw] max-w-[380px] -translate-x-1/2 -translate-y-1/2 transition-[opacity,width] duration-500 ease-out"
             } ${isActive ? "opacity-100" : "opacity-0"}`}
           />
@@ -250,9 +250,9 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
                 that the enlarged image itself is the thing to tap, since
                 a big centered photo reads as decorative by default. Only
                 ever rendered while isSettledActive is true, so it needs
-                no conditional styling of its own. Delayed to 2460ms so it
+                no conditional styling of its own. Delayed to 1640ms so it
                 appears only once the image's own settle-bounce animation
-                (3000ms total) has essentially finished, rather than
+                (2000ms total) has essentially finished, rather than
                 popping in mid-bounce and undercutting that motion.
                 Positioned relative to the image's own center + half its
                 rendered height (82vw wide at a 4:5 aspect ratio is ~51vw
@@ -260,7 +260,7 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
                 just below the image regardless of viewport width. */}
             <span
               aria-hidden
-              className="absolute left-1/2 top-[calc(50%+55vw)] -translate-x-1/2 animate-[fade-in_0.4s_ease-out_2460ms_both] whitespace-nowrap font-display text-[3.6vw] font-black uppercase tracking-[0.05em] text-[#111111]"
+              className="absolute left-1/2 top-[calc(50%+55vw)] -translate-x-1/2 animate-[fade-in_0.4s_ease-out_1640ms_both] whitespace-nowrap font-display text-[3.6vw] font-black uppercase tracking-[0.05em] text-[#111111]"
             >
               View Project →
             </span>
