@@ -36,6 +36,17 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
   const blockRef = useRef<HTMLUListElement | null>(null);
   const { activeUid } = useActiveProjectLink();
 
+  // Set the instant the enlarged image is tapped (see the Link's onClick
+  // below), rather than derived from any scroll/settle state — this is
+  // what actually freezes the visual state during the brief window
+  // before the new page finishes loading. Without it, the tap itself,
+  // or React beginning to unmount this component as navigation starts,
+  // could cause activeUid/isSettled to flicker back to their defaults
+  // for a moment, which looked like the page losing its place right as
+  // someone opened a project — even though navigation was actually
+  // proceeding correctly underneath that flicker the whole time.
+  const [isNavigating, setIsNavigating] = useState(false);
+
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -94,7 +105,40 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
     };
   }, []);
 
-  const activeProject = projects.find((p) => p.uid === activeUid) ?? null;
+  const rawActiveProject = projects.find((p) => p.uid === activeUid) ?? null;
+
+  // Once scrolling genuinely stops (not just pauses mid-scroll), the
+  // active project's image grows into a large, tappable centerpiece and
+  // the text list dims to a low opacity around it — rather than
+  // disappearing entirely, so there's always some context on screen.
+  // Deliberately no auto-navigation or timer here: the person taps the
+  // image themselves when they want to open that project, and scrolling
+  // again immediately fades the list back in and shrinks the image back
+  // down. See useIsScrollSettled for why this hook has no side effects
+  // of its own beyond reporting the boolean.
+  const rawIsSettled = useIsScrollSettled();
+
+  // Freezes activeProject/isSettled to their last known values once
+  // isNavigating is true, rather than continuing to track whatever
+  // activeUid/rawIsSettled report during that window — those could
+  // genuinely change (even revert to defaults) in the moment navigation
+  // begins, and re-deriving from them here would let that flicker
+  // through instead of actually preventing it. Uses real state, updated
+  // via a render-time comparison (React's documented pattern for
+  // adjusting state in response to a changing value without an effect),
+  // rather than a ref: refs can't be read during render under the
+  // stricter React Compiler rules this project's lint config enforces.
+  const [frozenActiveProject, setFrozenActiveProject] =
+    useState(rawActiveProject);
+  const [frozenIsSettled, setFrozenIsSettled] = useState(rawIsSettled);
+  if (!isNavigating && frozenActiveProject !== rawActiveProject) {
+    setFrozenActiveProject(rawActiveProject);
+  }
+  if (!isNavigating && frozenIsSettled !== rawIsSettled) {
+    setFrozenIsSettled(rawIsSettled);
+  }
+  const activeProject = isNavigating ? frozenActiveProject : rawActiveProject;
+  const isSettled = isNavigating ? frozenIsSettled : rawIsSettled;
 
   // A debounced version of "no active project," used only to decide
   // whether the scroll hint should reappear — not for the image/text
@@ -119,21 +163,10 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
     if (activeProject) setShowHintForNoActive(false);
   }
   useEffect(() => {
-    if (activeProject) return;
+    if (activeProject || isNavigating) return;
     const timeout = setTimeout(() => setShowHintForNoActive(true), 400);
     return () => clearTimeout(timeout);
-  }, [activeProject]);
-
-  // Once scrolling genuinely stops (not just pauses mid-scroll), the
-  // active project's image grows into a large, tappable centerpiece and
-  // the text list dims to a low opacity around it — rather than
-  // disappearing entirely, so there's always some context on screen.
-  // Deliberately no auto-navigation or timer here: the person taps the
-  // image themselves when they want to open that project, and scrolling
-  // again immediately fades the list back in and shrinks the image back
-  // down. See useIsScrollSettled for why this hook has no side effects
-  // of its own beyond reporting the boolean.
-  const isSettled = useIsScrollSettled();
+  }, [activeProject, isNavigating]);
 
   if (projects.length === 0) {
     return (
@@ -209,6 +242,7 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
             href={`/project/${project.uid}`}
             aria-label={`Open ${project.data.name}`}
             className="contents"
+            onClick={() => setIsNavigating(true)}
           >
             {imageEl}
             {/* Small label confirming the image is tappable, not just a
@@ -216,15 +250,17 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
                 that the enlarged image itself is the thing to tap, since
                 a big centered photo reads as decorative by default. Only
                 ever rendered while isSettledActive is true, so it needs
-                no conditional styling of its own; the transition plays
-                once as it mounts in. Positioned relative to the image's
-                own center + half its rendered height (82vw wide at a 4:5
-                aspect ratio is ~51vw tall from center to edge) plus a
-                small gap, so it sits just below the image regardless of
-                viewport width. */}
+                no conditional styling of its own. Delayed to 2460ms so it
+                appears only once the image's own settle-bounce animation
+                (3000ms total) has essentially finished, rather than
+                popping in mid-bounce and undercutting that motion.
+                Positioned relative to the image's own center + half its
+                rendered height (82vw wide at a 4:5 aspect ratio is ~51vw
+                tall from center to edge) plus a small gap, so it sits
+                just below the image regardless of viewport width. */}
             <span
               aria-hidden
-              className="absolute left-1/2 top-[calc(50%+55vw)] -translate-x-1/2 animate-[fade-in_0.5s_ease-out_0.2s_both] whitespace-nowrap font-display text-[3.6vw] font-black uppercase tracking-[0.05em] text-[#111111]"
+              className="absolute left-1/2 top-[calc(50%+55vw)] -translate-x-1/2 animate-[fade-in_0.4s_ease-out_2460ms_both] whitespace-nowrap font-display text-[3.6vw] font-black uppercase tracking-[0.05em] text-[#111111]"
             >
               View Project →
             </span>
