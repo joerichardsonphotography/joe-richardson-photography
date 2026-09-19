@@ -90,41 +90,77 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
             field={image}
             fallbackAlt=""
             sizes="55vw"
-            className={`absolute left-1/2 top-1/2 aspect-[4/5] w-[55vw] max-w-[380px] -translate-x-1/2 -translate-y-1/2
-cat > src/slices/ProjectGrid/ProjectGridClient.tsx << 'PRISMIC_EOF'
-"use client";
+            className={`absolute left-1/2 top-1/2 aspect-[4/5] w-[55vw] max-w-[380px] -translate-x-1/2 -translate-y-1/2 object-cover transition-opacity duration-700 ease-out ${
+              isActive ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        );
+      })}
+    </div>
+  );
 
-import { Content } from "@prismicio/client";
-import { useIsDesktop } from "@/hooks/useIsDesktop";
-import { DesktopHomepage } from "./DesktopHomepage";
-import { MobileHomepage } from "./MobileHomepage";
+  const scrollHint = (
+    <div
+      aria-hidden
+      className={`pointer-events-none fixed bottom-20 left-1/2 z-20 -translate-x-1/2 transition-opacity duration-1000 ${
+        hasScrolled ? "opacity-0" : "opacity-100"
+      }`}
+    >
+      <svg
+        width="20"
+        height="12"
+        viewBox="0 0 20 12"
+        fill="none"
+        className="animate-bounce"
+      >
+        <path
+          d="M1 1L10 10L19 1"
+          stroke="#B5241C"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </div>
+  );
 
-type Project = Content.ProjectDocument;
+  return (
+    <>
+      {/* Both portaled straight to document.body, independently of
+          DesktopHomepage's own portal. Order matters here: the backdrop
+          is portaled first, so it lands earlier in document.body's
+          child list than the text list's own z-10 below — paint order
+          plus z-index both agree on the same result, rather than one
+          having to compensate for the other. */}
+      {mounted && createPortal(backdropImage, document.body)}
+      {mounted && createPortal(scrollHint, document.body)}
 
-/**
- * Thin dispatcher: mounts exactly one of DesktopHomepage or
- * MobileHomepage, never both. Each owns its own hooks (scroll loop,
- * active-project tracking) and its own portal to document.body — running
- * both simultaneously (even with one CSS-hidden) would mean two
- * scroll-loop instances fighting over window.scrollY and two portaled
- * DOM trees competing for the same space, so exactly one is mounted
- * based on actual viewport width instead.
- *
- * useIsDesktop returns null until the first client-side check completes;
- * this renders nothing during that brief window rather than guessing,
- * since mounting the wrong variant even briefly would run its effects
- * needlessly. In practice this window is a handful of milliseconds after
- * hydration — the multi-second data-fetch gap is already covered by
- * app/loading.tsx, which is unrelated to this.
- */
-export function ProjectGridClient({ projects }: { projects: Project[] }) {
-  const isDesktop = useIsDesktop();
-
-  if (isDesktop === null) return null;
-
-  return isDesktop ? (
-    <DesktopHomepage projects={projects} />
-  ) : (
-    <MobileHomepage projects={projects} />
+      <main className="relative z-10 max-w-full px-4 pb-28 pt-20">
+        {Array.from({ length: REPEAT_COUNT }).map((_, repeatIdx) => (
+          <ul
+            key={repeatIdx}
+            ref={repeatIdx === 0 ? blockRef : undefined}
+            aria-hidden={repeatIdx !== Math.floor(REPEAT_COUNT / 2)}
+            className="flex flex-col"
+          >
+            {projects.map((project) => (
+              <li key={`${repeatIdx}-${project.id}`} className="leading-[0.9]">
+                <Link
+                  href={`/project/${project.uid}`}
+                  data-project-uid={project.uid}
+                  className={`block font-display font-black uppercase leading-[0.9] tracking-[-0.03em] transition-colors duration-150 focus-visible:outline-none text-[10.5vw] ${
+                    activeProject?.uid === project.uid
+                      ? "text-[#111111]"
+                      : "text-[#111111]/30"
+                  }`}
+                >
+                  {project.data.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ))}
+      </main>
+    </>
   );
 }
