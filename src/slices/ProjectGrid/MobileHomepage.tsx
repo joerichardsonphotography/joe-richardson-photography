@@ -134,6 +134,23 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
             className="contents"
           >
             {imageEl}
+            {/* Small label confirming the image is tappable, not just a
+                decorative photo — without this, nothing on screen signals
+                that the enlarged image itself is the thing to tap, since
+                a big centered photo reads as decorative by default. Only
+                ever rendered while isSettledActive is true, so it needs
+                no conditional styling of its own; the transition plays
+                once as it mounts in. Positioned relative to the image's
+                own center + half its rendered height (82vw wide at a 4:5
+                aspect ratio is ~51vw tall from center to edge) plus a
+                small gap, so it sits just below the image regardless of
+                viewport width. */}
+            <span
+              aria-hidden
+              className="absolute left-1/2 top-[calc(50%+55vw)] -translate-x-1/2 animate-[fade-in_0.5s_ease-out_0.2s_both] whitespace-nowrap font-display text-[3.6vw] font-black uppercase tracking-[0.05em] text-[#111111]"
+            >
+              View Project →
+            </span>
           </Link>
         ) : (
           <div key={project.id} className="pointer-events-none contents">

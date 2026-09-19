@@ -76,3 +76,17 @@ body {
     scroll-snap-type: y mandatory;
   }
 }
+
+/* Mobile homepage: the "View Project →" label under the enlarged,
+   tappable image (see MobileHomepage's isSettledActive branch). Plays
+   once as the label mounts in, rather than needing a conditional
+   opacity class of its own — the label only ever renders while it's
+   meant to be visible. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
