@@ -26,7 +26,8 @@ export function useIsScrollSettled(): boolean {
 
   useEffect(() => {
     let fallbackTimeout: ReturnType<typeof setTimeout> | null = null;
-    let cleanup: (() => void) | undefined;
+    let hasInteracted = false;
+    let cleanupScroll: (() => void) | undefined;
 
     const onScroll = () => {
       setIsSettled(false);
@@ -44,27 +45,46 @@ export function useIsScrollSettled(): boolean {
       setIsSettled(true);
     };
 
-    // useInfiniteScrollLoop settles the page to its middle repeated copy
-    // on mount via a programmatic window.scrollTo — even with an
-    // "instant" scroll, browsers still fire a genuine `scrollend` once
-    // that position change is applied. Attaching these listeners
-    // immediately would catch that initial settle and report the page
-    // as "settled" (triggering the full-screen reveal) before the
-    // person has scrolled at all. Deferring attachment to the next
-    // animation frame lets that initial settle's events fire and be
-    // missed first, so this only ever reacts to a later, real scroll.
-    const frame = requestAnimationFrame(() => {
+    // Neither useInfiniteScrollLoop's own initial programmatic scrollTo
+    // NOR iOS Safari's address-bar auto-hide on load are genuine user
+    // scrolling, but both fire real `scroll`/`scrollend` events — with
+    // no reliable way to tell them apart from those events alone (a
+    // requestAnimationFrame-based defer, tried previously, only closes
+    // the gap for the former; Safari's chrome can hide on its own
+    // timeline, not tied to one frame after mount, and was confirmed to
+    // slip through that defer in practice). What's reliably different
+    // is that only an actual user action starts with a touch, click, or
+    // wheel — so this only starts listening for scroll/scrollend at all
+    // once one of those has genuinely happened first.
+    const armScrollListeners = () => {
+      if (hasInteracted) return;
+      hasInteracted = true;
       window.addEventListener("scroll", onScroll, { passive: true });
       window.addEventListener("scrollend", onNativeScrollEnd);
-      cleanup = () => {
+      cleanupScroll = () => {
         window.removeEventListener("scroll", onScroll);
         window.removeEventListener("scrollend", onNativeScrollEnd);
       };
+    };
+
+    window.addEventListener("touchstart", armScrollListeners, {
+      passive: true,
+      once: true,
+    });
+    window.addEventListener("wheel", armScrollListeners, {
+      passive: true,
+      once: true,
+    });
+    window.addEventListener("pointerdown", armScrollListeners, {
+      passive: true,
+      once: true,
     });
 
     return () => {
-      cancelAnimationFrame(frame);
-      cleanup?.();
+      window.removeEventListener("touchstart", armScrollListeners);
+      window.removeEventListener("wheel", armScrollListeners);
+      window.removeEventListener("pointerdown", armScrollListeners);
+      cleanupScroll?.();
       if (fallbackTimeout) clearTimeout(fallbackTimeout);
     };
   }, []);

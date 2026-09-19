@@ -37,18 +37,48 @@ export function useActiveProjectLink() {
       setActiveUid((current) => (current === uid ? current : uid));
     };
 
-    // Deliberately no initial readAtLine() call here — on load, before
-    // any scroll, this should report no active project at all (the
-    // mobile homepage shows the plain grey list with no thumbnail then).
-    // Calling it immediately on mount would resolve whatever project
-    // happens to sit at the reading line at the initial scroll position
-    // (which useInfiniteScrollLoop sets to its middle repeated copy),
-    // showing a thumbnail before the person has done anything.
-    window.addEventListener("scroll", readAtLine, { passive: true });
+    // Deliberately no initial readAtLine() call, and the scroll listener
+    // itself isn't attached until a genuine touch/wheel/pointerdown has
+    // happened — on load, before any real interaction, this should
+    // report no active project at all (the mobile homepage shows the
+    // plain grey list with no thumbnail then). A plain scroll listener
+    // attached immediately (or even just deferred by a frame) would
+    // still catch two things that aren't real user scrolling but fire
+    // ordinary `scroll` events regardless: useInfiniteScrollLoop's own
+    // initial programmatic settle, and — confirmed in practice — iOS
+    // Safari's address-bar auto-hide shortly after load. Gating on an
+    // actual touch/wheel/pointerdown first is the one signal that's
+    // reliably tied to genuine user intent rather than either of those.
+    let hasInteracted = false;
+    let cleanupScroll: (() => void) | undefined;
+    const armScrollListener = () => {
+      if (hasInteracted) return;
+      hasInteracted = true;
+      window.addEventListener("scroll", readAtLine, { passive: true });
+      cleanupScroll = () =>
+        window.removeEventListener("scroll", readAtLine);
+    };
+
+    window.addEventListener("touchstart", armScrollListener, {
+      passive: true,
+      once: true,
+    });
+    window.addEventListener("wheel", armScrollListener, {
+      passive: true,
+      once: true,
+    });
+    window.addEventListener("pointerdown", armScrollListener, {
+      passive: true,
+      once: true,
+    });
     window.addEventListener("resize", readAtLine);
+
     return () => {
-      window.removeEventListener("scroll", readAtLine);
+      window.removeEventListener("touchstart", armScrollListener);
+      window.removeEventListener("wheel", armScrollListener);
+      window.removeEventListener("pointerdown", armScrollListener);
       window.removeEventListener("resize", readAtLine);
+      cleanupScroll?.();
     };
   }, [isTouch]);
 

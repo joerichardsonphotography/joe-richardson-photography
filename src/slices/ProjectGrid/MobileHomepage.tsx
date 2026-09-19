@@ -34,7 +34,7 @@ const REPEAT_COUNT = 5;
  */
 export function MobileHomepage({ projects }: { projects: Project[] }) {
   const blockRef = useRef<HTMLUListElement | null>(null);
-  const { activeUid, isTouch } = useActiveProjectLink();
+  const { activeUid } = useActiveProjectLink();
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -46,29 +46,51 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
 
   const [hasScrolled, setHasScrolled] = useState(false);
   useEffect(() => {
-    // useInfiniteScrollLoop settles the page to its middle repeated copy
-    // on mount via a programmatic window.scrollTo — which fires a real
-    // native `scroll` event, indistinguishable from a genuine user
-    // scroll. Attaching this listener immediately would catch that
-    // initial settle and mark hasScrolled true before anyone has
-    // actually touched the page, hiding "Scroll to explore" on load
-    // when it should always show there. Deferring attachment to the
-    // next animation frame lets that initial settle finish first, so
-    // this only ever catches a real, later scroll.
-    let cleanup: (() => void) | undefined;
-    const frame = requestAnimationFrame(() => {
-      const onScroll = () => {
-        setHasScrolled(true);
-      };
+    // Neither useInfiniteScrollLoop's own initial programmatic scrollTo
+    // NOR iOS Safari's address-bar auto-hide on load are genuine user
+    // scrolling, but both fire real, ordinary `scroll` events — with no
+    // reliable way to tell them apart from a scroll event alone (a
+    // requestAnimationFrame-based defer, tried previously, only closes
+    // the gap for the former; Safari's chrome can hide on its own
+    // timeline, not tied to one frame after mount). What's reliably
+    // different is that only an actual user action starts with a touch,
+    // click, or wheel — so hasScrolled only starts listening for scroll
+    // at all once one of those has genuinely happened first.
+    let hasInteracted = false;
+    let cleanupScroll: (() => void) | undefined;
+
+    const onScroll = () => {
+      setHasScrolled(true);
+    };
+
+    const armScrollListener = () => {
+      if (hasInteracted) return;
+      hasInteracted = true;
       window.addEventListener("scroll", onScroll, {
         passive: true,
         once: true,
       });
-      cleanup = () => window.removeEventListener("scroll", onScroll);
+      cleanupScroll = () => window.removeEventListener("scroll", onScroll);
+    };
+
+    window.addEventListener("touchstart", armScrollListener, {
+      passive: true,
+      once: true,
     });
+    window.addEventListener("wheel", armScrollListener, {
+      passive: true,
+      once: true,
+    });
+    window.addEventListener("pointerdown", armScrollListener, {
+      passive: true,
+      once: true,
+    });
+
     return () => {
-      cancelAnimationFrame(frame);
-      cleanup?.();
+      window.removeEventListener("touchstart", armScrollListener);
+      window.removeEventListener("wheel", armScrollListener);
+      window.removeEventListener("pointerdown", armScrollListener);
+      cleanupScroll?.();
     };
   }, []);
 
@@ -212,23 +234,6 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
 
   return (
     <>
-      {/* TEMPORARY DEBUG BADGE — remove once the initial-load active-project
-          issue is diagnosed. Shows live state directly on screen so it can
-          be read without any inspector/dev-tools setup. */}
-      {mounted &&
-        createPortal(
-          <div
-            aria-hidden
-            className="pointer-events-none fixed left-2 top-2 z-[999] rounded bg-black/80 px-2 py-1 font-mono text-[10px] leading-tight text-white"
-          >
-            <div>activeUid: {activeUid ?? "null"}</div>
-            <div>isSettled: {String(isSettled)}</div>
-            <div>isTouch: {String(isTouch)}</div>
-            <div>hasScrolled: {String(hasScrolled)}</div>
-          </div>,
-          document.body,
-        )}
-
       {/* Both portaled straight to document.body, independently of
           DesktopHomepage's own portal. Order matters here: the backdrop
           is portaled first, so it lands earlier in document.body's
