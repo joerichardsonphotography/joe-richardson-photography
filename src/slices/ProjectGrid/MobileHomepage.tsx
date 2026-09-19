@@ -42,12 +42,7 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
     setMounted(true);
   }, []);
 
-  // Suppresses the backdrop image's CSS transition specifically during
-  // the loop's own instant teleport jumps (see useInfiniteScrollLoop) —
-  // without this, a transition already in flight when a jump happens
-  // can visibly flash/blink for a frame as React reconciles the DOM at
-  // the new (but logically identical) scroll position.
-  const isJumping = useInfiniteScrollLoop(blockRef, REPEAT_COUNT);
+  useInfiniteScrollLoop(blockRef, REPEAT_COUNT);
 
   const [hasScrolled, setHasScrolled] = useState(false);
   useEffect(() => {
@@ -135,9 +130,7 @@ export function MobileHomepage({ projects }: { projects: Project[] }) {
             field={image}
             fallbackAlt=""
             sizes="(min-width: 0px) 82vw, 55vw"
-            className={`absolute left-1/2 top-1/2 aspect-[4/5] -translate-x-1/2 -translate-y-1/2 object-cover ${
-              isJumping ? "" : "transition-[opacity,width] duration-700 ease-out"
-            } ${
+            className={`absolute left-1/2 top-1/2 aspect-[4/5] -translate-x-1/2 -translate-y-1/2 object-cover transition-[opacity,width] duration-700 ease-out ${
               isSettledActive
                 ? "w-[82vw] max-w-[520px]"
                 : "w-[55vw] max-w-[380px]"

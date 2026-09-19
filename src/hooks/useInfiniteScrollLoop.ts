@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 /**
  * Makes a repeated block of content (rendered N times by the caller) scroll
@@ -11,21 +11,13 @@ import { useEffect, useRef, useState } from "react";
  * this hook only manages the scroll position math. It measures the height of
  * a single copy via `blockRef` (attach it to the first copy) and re-measures
  * on resize.
- *
- * Returns isJumping: true for one frame around each teleport. A caller
- * showing something with its own CSS transition (e.g. a cross-fading
- * backdrop image tied to which item is "active") can use this to briefly
- * suspend that transition during the jump — otherwise an in-flight
- * transition can visibly flash or blink as React reconciles the DOM at
- * the new (but logically identical) scroll position.
  */
 export function useInfiniteScrollLoop(
   blockRef: React.RefObject<HTMLElement | null>,
   repeatCount: number,
 ) {
-  const isJumpingRef = useRef(false);
+  const isJumping = useRef(false);
   const isTouching = useRef(false);
-  const [isJumping, setIsJumping] = useState(false);
 
   useEffect(() => {
     if (repeatCount < 3) return;
@@ -37,26 +29,19 @@ export function useInfiniteScrollLoop(
       blockHeight = blockRef.current?.offsetHeight ?? 0;
     };
 
-    const beginJump = () => {
-      isJumpingRef.current = true;
-      setIsJumping(true);
-    };
-    const endJump = () => {
-      isJumpingRef.current = false;
-      setIsJumping(false);
-    };
-
     const settleToMiddle = () => {
       if (!blockHeight) return;
       const middleTop = blockHeight * middleIndex;
       if (Math.abs(window.scrollY - middleTop) < 4) return;
-      beginJump();
+      isJumping.current = true;
       window.scrollTo({ top: middleTop, behavior: "instant" });
-      requestAnimationFrame(endJump);
+      requestAnimationFrame(() => {
+        isJumping.current = false;
+      });
     };
 
     const checkBounds = () => {
-      if (!blockHeight || isJumpingRef.current) return;
+      if (!blockHeight || isJumping.current) return;
       const y = window.scrollY;
       const maxScrollY = Math.max(
         0,
@@ -73,9 +58,11 @@ export function useInfiniteScrollLoop(
       }
 
       if (target !== null && target !== y) {
-        beginJump();
+        isJumping.current = true;
         window.scrollTo({ top: target, behavior: "instant" });
-        requestAnimationFrame(endJump);
+        requestAnimationFrame(() => {
+          isJumping.current = false;
+        });
       }
     };
 
@@ -120,6 +107,4 @@ export function useInfiniteScrollLoop(
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [repeatCount]);
-
-  return isJumping;
 }
