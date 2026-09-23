@@ -38,16 +38,18 @@ const MAIN_MAX_WIDTH_CSS = `clamp(0px, 100vw, ${NORMAL_VIEWPORT_MAX_PX}px)`;
 const TEXT_COLUMN_MAX_WIDTH_CSS = `clamp(0px, 58vw, ${
   NORMAL_VIEWPORT_MAX_PX * 0.58
 }px)`;
-// Both the text column and the thumbnail need to know where the
-// composition's own right edge falls, in absolute viewport coordinates,
-// since the thumbnail is `position: fixed` (portaled to document.body to
-// escape the page-transition wrapper's transform — see the note below)
-// and so can't simply be laid out as a normal-flow sibling of the text
-// inside one shared container the way you would on a page without that
-// constraint. This mirrors MAIN_MAX_WIDTH_CSS's own clamp so the two
-// track the same growth-then-plateau shape without ever drifting apart.
-const COMPOSITION_HALF_WIDTH_CSS = `clamp(0px, 50vw, ${
-  NORMAL_VIEWPORT_MAX_PX / 2
+// Preserves the original design's right-[7vw] positioning for the
+// thumbnail on any screen up to NORMAL_VIEWPORT_MAX_PX (same threshold
+// as everything else above) — an earlier version of this fix derived
+// the thumbnail's position from the composition's own centered-edge math
+// instead, which looked reasonable on paper but actually shifted the
+// thumbnail measurably closer to the screen edge than before (roughly
+// 30px vs the original ~106px, on a typical 1512px-wide laptop) once
+// actually compared side by side. Mirroring the original 7vw formula
+// directly, capped the same way as everything else, is what actually
+// keeps ordinary screens looking unchanged.
+const THUMBNAIL_RIGHT_OFFSET_CSS = `clamp(0px, 7vw, ${
+  NORMAL_VIEWPORT_MAX_PX * 0.07
 }px)`;
 
 /**
@@ -93,14 +95,10 @@ export function DesktopHomepage({ projects }: { projects: Project[] }) {
     <div
       aria-hidden
       className="pointer-events-none fixed top-1/2 z-20 -translate-y-1/2"
-      // Positions the thumbnail's right edge a fixed distance inward
-      // from the composition's own right edge (calc(50vw + half-width)
-      // is that edge's absolute position from center), rather than a
-      // fixed distance from the raw viewport edge — so it moves together
-      // with the text column as the composition centers itself, instead
-      // of drifting apart from it as the window gets wider.
+      // Mirrors the original design's right-[7vw] exactly, up to
+      // NORMAL_VIEWPORT_MAX_PX — see THUMBNAIL_RIGHT_OFFSET_CSS above.
       style={{
-        right: `calc(50vw - ${COMPOSITION_HALF_WIDTH_CSS} + 2vw)`,
+        right: THUMBNAIL_RIGHT_OFFSET_CSS,
       }}
     >
       {projects.map((project) => {
@@ -117,7 +115,8 @@ export function DesktopHomepage({ projects }: { projects: Project[] }) {
             field={image}
             fallbackAlt=""
             sizes="32vw"
-            className={`absolute right-0 top-0 aspect-[4/5] w-[26vw] max-w-[468px] -translate-y-1/2 object-cover transition-opacity duration-700 ease-out ${
+            style={{ maxWidth: `${NORMAL_VIEWPORT_MAX_PX * 0.32}px` }}
+            className={`absolute right-0 top-0 aspect-[4/5] w-[32vw] -translate-y-1/2 object-cover transition-opacity duration-700 ease-out ${
               isActive ? "opacity-100" : "opacity-0"
             }`}
           />
