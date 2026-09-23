@@ -12,37 +12,42 @@ type Project = Content.ProjectDocument;
 
 const REPEAT_COUNT = 5;
 
-// The text column + thumbnail are treated as one composed unit, capped
-// at this width and centered in the viewport — rather than each being
-// positioned independently relative to the raw viewport edges. Without
-// this, on very wide/high-res monitors the text column (previously a
-// plain percentage of viewport width, with no upper bound) grew without
-// limit and the thumbnail stayed pinned a fixed distance from the
-// screen's actual edge, leaving a large, unbalanced gap between the two
-// that just grew wider along with the monitor instead of the layout
-// ever settling into a composed, intentional-looking arrangement.
-//
-// This is <main>'s own max-w-[1400px]; note that <main> also has px-8
-// padding inside that width, so the text column's actual visual right
-// edge sits 32px inside COMPOSITION_MAX_WIDTH_PX/2 from center, not
-// exactly at it. The thumbnail's positioning math below doesn't account
-// for that 32px, so at the exact width where the cap engages, the two
-// can be off by that amount — small enough in practice not to be worth
-// the added complexity of threading the padding value through here too,
-// but worth knowing about rather than assuming pixel-perfect alignment.
-const COMPOSITION_MAX_WIDTH_PX = 1400;
+// The composition (text column + thumbnail together) should behave
+// exactly like the original, uncapped layout — full-bleed, scaling with
+// the viewport — on any screen up to this width, which comfortably
+// covers ordinary laptop displays. Only beyond it does the composition
+// stop growing and start centering itself, which is specifically for
+// large external monitors (1440p, 4K, ultrawide) where letting a
+// percentage-based layout keep scaling forever produced enormous text
+// and a lopsided gap of empty space on one side rather than a
+// deliberately composed, centered arrangement. A single fixed max-width
+// applied too aggressively (an earlier version of this fix used 1400px
+// as a hard cap engaging via `min(50vw, 700px)`, which — since many
+// ordinary laptops are narrower than 1400px — ended up squeezing and
+// centering the layout even on completely normal-sized screens) is
+// exactly what this threshold avoids: below it, every value here
+// resolves to its uncapped, viewport-relative form.
+const NORMAL_VIEWPORT_MAX_PX = 1800;
+// clamp(min, preferred, max) naturally gives "grows with the viewport up
+// to a point, then holds steady" for free: below NORMAL_VIEWPORT_MAX_PX
+// the `preferred` (vw-based) value governs and this resolves to the
+// same shape the original, uncapped 58%-of-viewport layout had; beyond
+// it, `max` takes over and holds the composition at exactly the width
+// it would have had at that threshold, rather than continuing to grow.
+const MAIN_MAX_WIDTH_CSS = `clamp(0px, 100vw, ${NORMAL_VIEWPORT_MAX_PX}px)`;
+const TEXT_COLUMN_MAX_WIDTH_CSS = `clamp(0px, 58vw, ${
+  NORMAL_VIEWPORT_MAX_PX * 0.58
+}px)`;
 // Both the text column and the thumbnail need to know where the
-// composition's own left/right edges fall, in absolute viewport
-// coordinates, since the thumbnail is `position: fixed` (portaled to
-// document.body to escape the page-transition wrapper's transform — see
-// the note below) and so can't simply be laid out as a normal-flow
-// sibling of the text inside one shared container the way you would on
-// a page without that constraint. This calc expresses "the viewport's
-// horizontal center, offset by half the capped composition width" in
-// pure CSS, so it tracks the same centering math as the text column's
-// own max-w-[1400px] mx-auto without the two ever drifting apart.
-const COMPOSITION_HALF_WIDTH_CSS = `min(50vw, ${
-  COMPOSITION_MAX_WIDTH_PX / 2
+// composition's own right edge falls, in absolute viewport coordinates,
+// since the thumbnail is `position: fixed` (portaled to document.body to
+// escape the page-transition wrapper's transform — see the note below)
+// and so can't simply be laid out as a normal-flow sibling of the text
+// inside one shared container the way you would on a page without that
+// constraint. This mirrors MAIN_MAX_WIDTH_CSS's own clamp so the two
+// track the same growth-then-plateau shape without ever drifting apart.
+const COMPOSITION_HALF_WIDTH_CSS = `clamp(0px, 50vw, ${
+  NORMAL_VIEWPORT_MAX_PX / 2
 }px)`;
 
 /**
@@ -112,7 +117,7 @@ export function DesktopHomepage({ projects }: { projects: Project[] }) {
             field={image}
             fallbackAlt=""
             sizes="32vw"
-            className={`absolute right-0 top-0 aspect-[4/5] w-[26vw] max-w-[420px] -translate-y-1/2 object-cover transition-opacity duration-700 ease-out ${
+            className={`absolute right-0 top-0 aspect-[4/5] w-[26vw] max-w-[468px] -translate-y-1/2 object-cover transition-opacity duration-700 ease-out ${
               isActive ? "opacity-100" : "opacity-0"
             }`}
           />
@@ -130,8 +135,11 @@ export function DesktopHomepage({ projects }: { projects: Project[] }) {
           the portal lands, so this can't affect anything else. */}
       {mounted && createPortal(thumbnailPreview, document.body)}
 
-      <main className="relative z-0 mx-auto max-w-[1400px] px-8 pb-28 pt-28">
-        <div className="max-w-[58%]">
+      <main
+        className="relative z-0 mx-auto px-8 pb-28 pt-28"
+        style={{ width: MAIN_MAX_WIDTH_CSS }}
+      >
+        <div style={{ width: TEXT_COLUMN_MAX_WIDTH_CSS }}>
           {Array.from({ length: REPEAT_COUNT }).map((_, repeatIdx) => (
             <ul
               key={repeatIdx}
@@ -156,13 +164,15 @@ export function DesktopHomepage({ projects }: { projects: Project[] }) {
                     }
                     onFocus={() => setActiveUid(project.uid)}
                     // text-[5vw] alone had the same unbounded-growth
-                    // problem as the old container width: on a very wide
-                    // monitor it kept scaling up indefinitely. Capping it
-                    // with a CSS clamp (min 2.5rem, scales with viewport
-                    // up to 5vw, never exceeding 4.5rem) keeps names
-                    // readable and proportioned to the now-capped
-                    // composition width instead of ballooning past it.
-                    className={`block font-display font-black uppercase leading-[0.9] tracking-[-0.03em] text-[#111111] transition-opacity duration-150 hover:opacity-40 active:opacity-40 focus-visible:opacity-40 focus-visible:outline-none [font-size:clamp(2.5rem,5vw,4.5rem)] ${
+                    // problem the composition width had: on a very wide
+                    // monitor it kept scaling up indefinitely. This clamp
+                    // mirrors NORMAL_VIEWPORT_MAX_PX above — 5vw at that
+                    // threshold works out to 5.625rem, so the max here
+                    // matches where the rest of the composition also
+                    // plateaus, rather than an independently-chosen value
+                    // that could cap out earlier or later than everything
+                    // else and visually decouple from it.
+                    className={`block font-display font-black uppercase leading-[0.9] tracking-[-0.03em] text-[#111111] transition-opacity duration-150 hover:opacity-40 active:opacity-40 focus-visible:opacity-40 focus-visible:outline-none [font-size:clamp(2.5rem,5vw,5.625rem)] ${
                       activeProject?.uid === project.uid ? "opacity-40" : ""
                     }`}
                   >
