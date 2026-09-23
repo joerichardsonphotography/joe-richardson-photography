@@ -22,7 +22,8 @@ export default async function ContactPage() {
           Contact
         </h1>
 
-        <div className="max-w-[56ch] text-[3.6vw] leading-[1.35] md:text-[1.15vw]">
+        <div className="mx-auto max-w-[1400px]">
+          <div className="max-w-[56ch] text-[3.6vw] leading-[1.35] md:max-w-[70ch] md:text-[1.15vw] lg:max-w-[90ch]">
           {isFilled.richText(page.data.intro) && (
             <div className="mb-8">
               <PrismicRichText
@@ -65,6 +66,7 @@ export default async function ContactPage() {
               document in Prismic, and they&apos;ll appear here.
             </p>
           )}
+          </div>
         </div>
       </main>
     </div>
